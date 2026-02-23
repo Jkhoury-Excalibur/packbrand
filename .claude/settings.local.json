@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "WebFetch(domain:www.packbrandsolutions.com)",
+      "Bash(npx next build:*)",
+      "Bash(npx eslint:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(npx tailwindcss --help:*)",
+      "Bash(gh auth status:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
