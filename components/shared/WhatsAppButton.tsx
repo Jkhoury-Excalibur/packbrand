@@ -1,12 +1,15 @@
 'use client';
 
 import { MessageCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils/cn';
 
 const WHATSAPP_PHONE = '15513893188';
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_PHONE}`;
 
 export function WhatsAppButton() {
+  const t = useTranslations('WhatsApp');
+
   return (
     <a
       href={WHATSAPP_URL}
@@ -21,7 +24,7 @@ export function WhatsAppButton() {
         'transition-all duration-300 hover:scale-110',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pbs-whatsapp',
       )}
-      aria-label="Chat with us on WhatsApp"
+      aria-label={t('ariaLabel')}
     >
       <MessageCircle className="h-7 w-7" />
 

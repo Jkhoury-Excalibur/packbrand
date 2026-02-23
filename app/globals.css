@@ -38,16 +38,16 @@
   --color-pbs-whatsapp-dark: #1DA851;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: var(--color-pbs-gray-50);
   --foreground: var(--color-pbs-gray-900);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--color-pbs-gray-950);
-    --foreground: var(--color-pbs-gray-100);
-  }
+.dark {
+  --background: var(--color-pbs-gray-950);
+  --foreground: var(--color-pbs-gray-100);
 }
 
 body {

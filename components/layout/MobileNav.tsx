@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { Package, X, Globe } from 'lucide-react';
+import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { Package, X, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { LanguageToggle } from '@/components/shared/LanguageToggle';
 
 interface NavLink {
   readonly href: string;
@@ -19,14 +21,12 @@ interface MobileNavProps {
 export function MobileNav({ open, onClose, links }: MobileNavProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const t = useTranslations('MobileNav');
 
   // Trap focus inside the drawer when open
   useEffect(() => {
     if (open) {
-      // Focus the close button when the drawer opens
       closeButtonRef.current?.focus();
-
-      // Prevent body scroll
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -67,7 +67,7 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
         id="mobile-nav"
         role="dialog"
         aria-modal="true"
-        aria-label="Navigation menu"
+        aria-label={t('dialogLabel')}
         className={cn(
           'fixed top-0 left-0 z-50 h-full w-72 max-w-[80vw] bg-white dark:bg-pbs-gray-950 shadow-2xl transition-transform duration-300 ease-in-out lg:hidden',
           open ? 'translate-x-0' : '-translate-x-full',
@@ -79,11 +79,11 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
             href="/"
             className="flex items-center gap-2"
             onClick={onClose}
-            aria-label="Pack Brand Solutions - Home"
+            aria-label="Packbrand Solutions - Home"
           >
             <Package className="h-6 w-6 text-pbs-red" />
             <span className="text-lg tracking-tight font-light text-pbs-gray-900 dark:text-white">
-              PACK<span className="font-bold">BRAND</span>
+              PACK<span className="font-bold">BRAND</span> <span className="text-xs font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
             </span>
           </Link>
 
@@ -92,19 +92,19 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
             type="button"
             className="p-2 rounded-lg text-pbs-gray-500 hover:text-pbs-red hover:bg-pbs-gray-100 dark:text-pbs-gray-400 dark:hover:bg-pbs-gray-800 transition-colors"
             onClick={onClose}
-            aria-label="Close navigation menu"
+            aria-label={t('closeMenu')}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Navigation links */}
-        <nav className="p-4" aria-label="Mobile navigation">
+        <nav className="p-4" aria-label={t('navLabel')}>
           <ul className="space-y-1">
             {links.map((link) => (
               <li key={link.href}>
                 <Link
-                  href={link.href}
+                  href={link.href as any}
                   className="flex items-center px-4 py-3 rounded-xl text-base font-medium text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
                   onClick={onClose}
                 >
@@ -115,19 +115,25 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
           </ul>
         </nav>
 
+        {/* My Account link */}
+        <div className="px-4 mt-2">
+          <Link
+            href="/account"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
+            onClick={onClose}
+          >
+            <UserCircle className="h-5 w-5" />
+            My Account
+          </Link>
+        </div>
+
         {/* Language toggle */}
         <div className="px-4 mt-4">
           <div className="border-t border-pbs-gray-200 dark:border-pbs-gray-800 pt-4">
-            <button
-              type="button"
-              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-pbs-gray-600 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-400 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors w-full"
-              aria-label="Switch language"
-            >
-              <Globe className="h-4 w-4" />
-              <span>English</span>
-              <span className="text-pbs-gray-300 dark:text-pbs-gray-600 mx-1">|</span>
-              <span className="text-pbs-gray-400 dark:text-pbs-gray-500">Espanol</span>
-            </button>
+            <LanguageToggle
+              variant="full"
+              className="px-4 py-3 rounded-xl text-pbs-gray-600 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-400 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 w-full"
+            />
           </div>
         </div>
 

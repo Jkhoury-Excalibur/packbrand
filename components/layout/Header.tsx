@@ -1,22 +1,31 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Package, ShoppingBag, Menu, Globe } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { Package, ShoppingBag, Menu, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { MobileNav } from './MobileNav';
-
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/products', label: 'Products' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
-] as const;
+import { LanguageToggle } from '@/components/shared/LanguageToggle';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { useCartStore } from '@/lib/store/cart';
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  // Placeholder cart count - will be connected to Zustand store later
-  const cartCount = 0;
+  const [mounted, setMounted] = useState(false);
+  const t = useTranslations('Header');
+  const cartItems = useCartStore((s) => s.items);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  const cartCount = mounted ? cartItems.length : 0;
+
+  const navLinks = [
+    { href: '/' as const, label: t('home') },
+    { href: '/products' as const, label: t('products') },
+    { href: '/about' as const, label: t('about') },
+    { href: '/contact' as const, label: t('contact') },
+  ];
 
   return (
     <>
@@ -36,7 +45,7 @@ export function Header() {
                 type="button"
                 className="lg:hidden p-2 rounded-lg text-pbs-gray-700 hover:bg-pbs-gray-100 dark:text-pbs-gray-300 dark:hover:bg-pbs-gray-800 transition-colors"
                 onClick={() => setMobileOpen(true)}
-                aria-label="Open navigation menu"
+                aria-label={t('openMenu')}
                 aria-expanded={mobileOpen}
                 aria-controls="mobile-nav"
               >
@@ -47,11 +56,11 @@ export function Header() {
               <Link
                 href="/"
                 className="flex items-center gap-2 group"
-                aria-label="Pack Brand Solutions - Home"
+                aria-label="Packbrand Solutions - Home"
               >
                 <Package className="h-7 w-7 text-pbs-red group-hover:scale-110 transition-transform" />
                 <span className="text-xl tracking-tight font-light text-pbs-gray-900 dark:text-white">
-                  PACK<span className="font-bold">BRAND</span>
+                  PACK<span className="font-bold">BRAND</span> <span className="text-sm font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
                 </span>
               </Link>
             </div>
@@ -75,23 +84,29 @@ export function Header() {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-2">
-              {/* Language toggle placeholder */}
-              <button
-                type="button"
-                className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-pbs-gray-600 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-400 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
-                aria-label="Switch language"
+              {/* Language toggle */}
+              <LanguageToggle
+                variant="compact"
+                className="hidden sm:flex px-3 py-1.5 text-pbs-gray-600 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-400 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800"
+              />
+
+              {/* Theme toggle */}
+              <ThemeToggle />
+
+              {/* My Account */}
+              <Link
+                href="/account"
+                className="p-2 rounded-lg text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
+                aria-label="My Account"
               >
-                <Globe className="h-4 w-4" />
-                <span>EN</span>
-                <span className="text-pbs-gray-300 dark:text-pbs-gray-600">|</span>
-                <span className="text-pbs-gray-400 dark:text-pbs-gray-500">ES</span>
-              </button>
+                <UserCircle className="h-5 w-5" />
+              </Link>
 
               {/* Cart */}
               <Link
                 href="/cart"
                 className="relative p-2 rounded-lg text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
-                aria-label={`Shopping cart${cartCount > 0 ? `, ${cartCount} items` : ''}`}
+                aria-label={cartCount > 0 ? t('cartWithItems', { count: cartCount }) : t('cart')}
               >
                 <ShoppingBag className="h-5 w-5" />
                 {cartCount > 0 && (
