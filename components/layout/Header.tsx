@@ -22,7 +22,7 @@ export function Header() {
 
   const navLinks = [
     { href: '/' as const, label: t('home') },
-    { href: '/products' as const, label: t('products') },
+    { href: '/packaging' as const, label: t('packaging') },
     { href: '/about' as const, label: t('about') },
     { href: '/contact' as const, label: t('contact') },
   ];

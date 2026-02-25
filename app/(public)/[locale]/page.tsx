@@ -1,18 +1,12 @@
 import {
   Package,
-  Coffee,
-  ShoppingBag,
-  Box,
-  UtensilsCrossed,
-  Sticker,
-  Star,
-  Truck,
-  Users,
+  Store,
+  Mic2,
+  TrendingUp,
   ArrowRight,
+  Sparkles,
   MessageCircle,
   Phone,
-  CheckCircle2,
-  Sparkles,
 } from 'lucide-react';
 import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
@@ -33,214 +27,169 @@ export default async function Home({ params }: Props) {
 function HomeContent() {
   const t = useTranslations('Home');
 
-  const productCategories = [
+  const productLines = [
     {
-      nameKey: 'cupsCategoryName' as const,
-      descKey: 'cupsCategoryDesc' as const,
-      icon: Coffee,
-      href: '/products?category=cups' as const,
-      accent: 'from-pbs-red to-pbs-red-dark',
-    },
-    {
-      nameKey: 'bagsCategoryName' as const,
-      descKey: 'bagsCategoryDesc' as const,
-      icon: ShoppingBag,
-      href: '/products?category=bags' as const,
-      accent: 'from-pbs-gray-900 to-pbs-gray-700',
-    },
-    {
-      nameKey: 'boxesCategoryName' as const,
-      descKey: 'boxesCategoryDesc' as const,
-      icon: Box,
-      href: '/products?category=boxes' as const,
-      accent: 'from-pbs-gold-dark to-pbs-gold',
-    },
-    {
-      nameKey: 'containersCategoryName' as const,
-      descKey: 'containersCategoryDesc' as const,
-      icon: UtensilsCrossed,
-      href: '/products?category=food-containers' as const,
-      accent: 'from-pbs-red-light to-pbs-red',
-    },
-    {
-      nameKey: 'labelsCategoryName' as const,
-      descKey: 'labelsCategoryDesc' as const,
-      icon: Sticker,
-      href: '/products?category=labels' as const,
-      accent: 'from-pbs-gray-800 to-pbs-gray-600',
-    },
-  ];
-
-  const valueProps = [
-    {
+      nameKey: 'packagesName' as const,
+      badgeKey: 'packagesBadge' as const,
+      taglineKey: 'packagesTagline' as const,
+      descKey: 'packagesDesc' as const,
+      href: '/packaging' as const,
       icon: Package,
-      titleKey: 'whyLowMinimumsTitle' as const,
-      descKey: 'whyLowMinimumsDesc' as const,
+      gradient: 'from-pbs-red via-pbs-red-dark to-pbs-black',
+      accentClass: 'text-pbs-gold',
+      badgeClass: 'bg-pbs-gold/20 text-pbs-gold border-pbs-gold/30',
+      status: 'live' as const,
     },
     {
-      icon: Truck,
-      titleKey: 'whyFastDeliveryTitle' as const,
-      descKey: 'whyFastDeliveryDesc' as const,
+      nameKey: 'directName' as const,
+      badgeKey: 'directBadge' as const,
+      taglineKey: 'directTagline' as const,
+      descKey: 'directDesc' as const,
+      href: '/contact' as const,
+      icon: Store,
+      gradient: 'from-blue-700 via-blue-900 to-slate-950',
+      accentClass: 'text-blue-300',
+      badgeClass: 'bg-blue-400/20 text-blue-300 border-blue-400/30',
+      status: 'soon' as const,
     },
     {
-      icon: Users,
-      titleKey: 'whyBilingualTitle' as const,
-      descKey: 'whyBilingualDesc' as const,
+      nameKey: 'voiceName' as const,
+      badgeKey: 'voiceBadge' as const,
+      taglineKey: 'voiceTagline' as const,
+      descKey: 'voiceDesc' as const,
+      href: '/contact' as const,
+      icon: Mic2,
+      gradient: 'from-violet-700 via-violet-900 to-slate-950',
+      accentClass: 'text-violet-300',
+      badgeClass: 'bg-violet-400/20 text-violet-300 border-violet-400/30',
+      status: 'soon' as const,
+    },
+    {
+      nameKey: 'growthName' as const,
+      badgeKey: 'growthBadge' as const,
+      taglineKey: 'growthTagline' as const,
+      descKey: 'growthDesc' as const,
+      href: '/contact' as const,
+      icon: TrendingUp,
+      gradient: 'from-emerald-700 via-emerald-900 to-slate-950',
+      accentClass: 'text-emerald-300',
+      badgeClass: 'bg-emerald-400/20 text-emerald-300 border-emerald-400/30',
+      status: 'soon' as const,
     },
   ];
-
-  const clients = ['Go Picadera', 'La Fortaleza', 'Kimchi Smoke', 'Parriyas'];
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-
-      {/* ------------------------------------------------------------------ */}
-      {/*  BENTO GRID                                                        */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5 lg:gap-6 mb-12">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-5 lg:gap-6 mb-12">
 
         {/* ================================================================ */}
         {/*  HERO CARD                                                       */}
         {/* ================================================================ */}
-        <div className="col-span-1 md:col-span-2 md:row-span-2 lg:col-span-4 lg:row-span-2 bg-gradient-to-br from-pbs-red via-pbs-red-dark to-pbs-black rounded-3xl p-8 sm:p-10 lg:p-12 text-white flex flex-col justify-between shadow-lg hover:shadow-2xl transition-shadow duration-500 relative overflow-hidden group min-h-[360px] lg:min-h-[440px]">
-          {/* Background decorative elements */}
-          <div className="absolute top-0 right-0 opacity-[0.07] transform translate-x-16 -translate-y-16 group-hover:scale-110 transition-transform duration-700" aria-hidden="true">
-            <Package className="h-72 w-72 lg:h-96 lg:w-96" strokeWidth={1} />
-          </div>
-          <div className="absolute bottom-0 left-0 opacity-[0.05] transform -translate-x-10 translate-y-10" aria-hidden="true">
-            <Sparkles className="h-48 w-48" strokeWidth={1} />
+        <div className="col-span-1 md:col-span-2 lg:col-span-6 bg-gradient-to-br from-pbs-red via-pbs-red-dark to-pbs-black rounded-3xl p-8 sm:p-10 lg:p-14 text-white flex flex-col justify-between shadow-lg relative overflow-hidden group min-h-[300px] lg:min-h-[340px]">
+          <div className="absolute top-0 right-0 opacity-[0.04] transform translate-x-20 -translate-y-20 group-hover:scale-105 transition-transform duration-700" aria-hidden="true">
+            <Sparkles className="h-[520px] w-[520px]" strokeWidth={0.5} />
           </div>
 
           <div className="relative z-10">
             <span className="inline-block bg-white/15 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest backdrop-blur-sm border border-white/10">
-              {t('heroBadge')}
+              {t('solutionsHeroBadge')}
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mt-6 mb-4 tracking-tight leading-tight">
-              {t('heroTitleLine1')}
+              {t('solutionsHeroTitle1')}
               <br />
-              <span className="text-pbs-gold">{t('heroTitleLine2')}</span>
+              <span className="text-pbs-gold">{t('solutionsHeroTitle2')}</span>
             </h1>
-            <p className="text-white/80 text-lg sm:text-xl max-w-lg leading-relaxed">
-              {t('heroDescription')}
+            <p className="text-white/80 text-lg sm:text-xl max-w-2xl leading-relaxed">
+              {t('solutionsHeroDesc')}
             </p>
           </div>
 
           <div className="relative z-10 flex flex-wrap gap-3 mt-8">
-            <Link href="/products">
+            <Link href="/contact">
               <Button variant="gold" size="lg" className="group/btn">
-                {t('browseProducts')}
+                {t('solutionsGetStarted')}
                 <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="/contact">
+            <Link href="/packaging">
               <Button
                 variant="ghost"
                 size="lg"
                 className="text-white hover:bg-white/10 border border-white/20 hover:border-white/40"
               >
-                {t('bulkOrders')}
+                {t('solutionsShopPackaging')}
               </Button>
             </Link>
           </div>
         </div>
 
         {/* ================================================================ */}
-        {/*  STATS / TRUST CARD                                              */}
+        {/*  PRODUCT LINE CARDS  (2 × 2 grid on lg)                         */}
         {/* ================================================================ */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white dark:bg-pbs-gray-900 rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-pbs-gray-100 dark:border-pbs-gray-800 flex flex-col justify-between relative overflow-hidden min-h-[200px]">
-          {/* Decorative background */}
-          <div className="absolute bottom-0 right-0 opacity-5" aria-hidden="true">
-            <Star className="h-32 w-32" strokeWidth={1} />
-          </div>
-
-          <div className="relative z-10">
-            <span className="text-xs font-bold text-pbs-gold uppercase tracking-widest">
-              {t('trustedByBadge')}
-            </span>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-5xl sm:text-6xl font-black text-pbs-gray-900 dark:text-white tracking-tight">
-                {t('trustedByCount')}
-              </span>
-            </div>
-            <p className="text-pbs-gray-500 dark:text-pbs-gray-400 text-sm mt-2">
-              {t('trustedBySubtitle')}
-            </p>
-          </div>
-
-          <div className="relative z-10 flex items-center gap-1.5 mt-4">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className="h-4 w-4 text-pbs-gold fill-pbs-gold"
-              />
-            ))}
-            <span className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 ml-1">
-              {t('qualityGuaranteed')}
-            </span>
-          </div>
-        </div>
-
-        {/* ================================================================ */}
-        {/*  LOW MINIMUMS CARD                                               */}
-        {/* ================================================================ */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-pbs-black rounded-3xl p-6 sm:p-8 text-white shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between relative overflow-hidden group min-h-[200px]">
-          <div className="absolute top-0 right-0 opacity-10 group-hover:opacity-15 transition-opacity" aria-hidden="true">
-            <Package className="h-28 w-28" strokeWidth={1} />
-          </div>
-
-          <div className="relative z-10">
-            <span className="text-xs font-bold text-pbs-gold uppercase tracking-widest">
-              {t('lowMinBadge')}
-            </span>
-            <h3 className="text-2xl font-bold tracking-tight mt-3">{t('lowMinTitle')}</h3>
-            <p className="text-pbs-gray-400 text-sm mt-2 leading-relaxed">
-              {t('lowMinDesc')}
-            </p>
-          </div>
-
-          <Link
-            href="/products"
-            className="relative z-10 text-pbs-gold text-sm font-medium flex items-center gap-1 mt-4 hover:gap-2 transition-all"
-          >
-            {t('browseProducts')}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        {/* ================================================================ */}
-        {/*  PRODUCT CATEGORY CARDS                                          */}
-        {/* ================================================================ */}
-        {productCategories.map((category) => {
-          const Icon = category.icon;
+        {productLines.map((product) => {
+          const Icon = product.icon;
           return (
             <Link
-              key={category.nameKey}
-              href={category.href}
-              className="col-span-1 md:col-span-1 lg:col-span-2 group"
+              key={product.nameKey}
+              href={product.href}
+              className="col-span-1 md:col-span-1 lg:col-span-3 group"
             >
-              <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-pbs-gray-100 dark:border-pbs-gray-800 h-full flex flex-col justify-between min-h-[180px] relative overflow-hidden hover:-translate-y-1">
-                {/* Gradient accent on hover */}
+              <div
+                className={`bg-gradient-to-br ${product.gradient} rounded-3xl p-7 sm:p-8 text-white shadow-lg hover:shadow-2xl transition-all duration-500 h-full flex flex-col justify-between min-h-[280px] lg:min-h-[300px] relative overflow-hidden hover:-translate-y-1`}
+              >
+                {/* Background watermark icon */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${category.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl`}
+                  className="absolute bottom-0 right-0 opacity-[0.07] transform translate-x-8 translate-y-8 group-hover:scale-110 transition-transform duration-700"
                   aria-hidden="true"
-                />
+                >
+                  <Icon className="h-52 w-52" strokeWidth={0.75} />
+                </div>
 
-                {/* Normal state content */}
-                <div className="relative z-10 group-hover:text-white transition-colors duration-300">
-                  <div className="h-12 w-12 rounded-2xl bg-pbs-gray-100 dark:bg-pbs-gray-800 group-hover:bg-white/20 flex items-center justify-center mb-4 transition-colors duration-300">
-                    <Icon className="h-6 w-6 text-pbs-red group-hover:text-white transition-colors duration-300" />
+                <div className="relative z-10">
+                  {/* Badge + status row */}
+                  <div className="flex items-center justify-between mb-5">
+                    <span
+                      className={`inline-flex items-center text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${product.badgeClass}`}
+                    >
+                      {t(product.badgeKey)}
+                    </span>
+
+                    {product.status === 'soon' ? (
+                      <span className="text-xs font-semibold text-white/50 bg-white/10 px-2.5 py-1 rounded-full border border-white/10">
+                        {t('solutionsComingSoon')}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-300 bg-emerald-400/10 px-2.5 py-1 rounded-full border border-emerald-400/20">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        {t('solutionsLive')}
+                      </span>
+                    )}
                   </div>
 
-                  <h3 className="text-lg font-bold text-pbs-gray-900 dark:text-white group-hover:text-white transition-colors duration-300">
-                    {t(category.nameKey)}
-                  </h3>
-                  <p className="text-sm text-pbs-gray-500 dark:text-pbs-gray-400 group-hover:text-white/80 mt-1.5 transition-colors duration-300">
-                    {t(category.descKey)}
+                  {/* Icon */}
+                  <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
+                    <Icon className={`h-6 w-6 ${product.accentClass}`} />
+                  </div>
+
+                  <h2 className="text-2xl font-bold tracking-tight">
+                    {t(product.nameKey)}
+                  </h2>
+                  <p className={`text-base font-medium mt-1 ${product.accentClass}`}>
+                    {t(product.taglineKey)}
+                  </p>
+                  <p className="text-white/70 text-sm mt-3 leading-relaxed">
+                    {t(product.descKey)}
                   </p>
                 </div>
 
-                <div className="relative z-10 flex items-center gap-1 text-pbs-red group-hover:text-white text-sm font-medium mt-4 transition-colors duration-300">
-                  <span>{t('viewProducts')}</span>
+                <div
+                  className={`relative z-10 flex items-center gap-1.5 mt-6 text-sm font-medium ${product.accentClass} group-hover:gap-3 transition-all duration-200`}
+                >
+                  <span>
+                    {product.status === 'live'
+                      ? t('solutionsExplore')
+                      : t('solutionsLearnMore')}
+                  </span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -249,81 +198,30 @@ function HomeContent() {
         })}
 
         {/* ================================================================ */}
-        {/*  WHY PBS CARD                                                    */}
+        {/*  CTA CARD                                                        */}
         {/* ================================================================ */}
-        <div className="col-span-1 md:col-span-4 lg:col-span-4 bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl p-6 sm:p-8 shadow-sm border border-pbs-gray-100 dark:border-pbs-gray-800 relative overflow-hidden">
-          <h3 className="text-xl font-bold text-pbs-gray-900 dark:text-white mb-6">
-            {t('whyPbsTitle')}
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {valueProps.map((prop) => {
-              const Icon = prop.icon;
-              return (
-                <div key={prop.titleKey} className="flex items-start gap-3">
-                  <div className="shrink-0 h-10 w-10 rounded-xl bg-pbs-red/10 dark:bg-pbs-red/20 flex items-center justify-center">
-                    <Icon className="h-5 w-5 text-pbs-red" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm text-pbs-gray-900 dark:text-white">
-                      {t(prop.titleKey)}
-                    </h4>
-                    <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 mt-0.5 leading-relaxed">
-                      {t(prop.descKey)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* CLIENT SHOWCASE CARD */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white dark:bg-pbs-gray-900 rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-pbs-gray-100 dark:border-pbs-gray-800 flex flex-col justify-between min-h-[200px]">
-          <div>
-            <span className="text-xs font-bold text-pbs-red uppercase tracking-widest">
-              {t('clientsBadge')}
-            </span>
-            <h3 className="text-xl font-bold text-pbs-gray-900 dark:text-white mt-2 mb-4">
-              {t('clientsTitle')}
-            </h3>
-          </div>
-
-          <div className="space-y-2.5">
-            {clients.map((client) => (
-              <div
-                key={client}
-                className="flex items-center gap-2.5 text-sm text-pbs-gray-700 dark:text-pbs-gray-300"
-              >
-                <CheckCircle2 className="h-4 w-4 text-pbs-red shrink-0" />
-                <span className="font-medium">{client}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ================================================================ */}
-        {/*  CTA / CONTACT CARD                                              */}
-        {/* ================================================================ */}
-        <div className="col-span-1 md:col-span-4 lg:col-span-6 bg-gradient-to-r from-pbs-red to-pbs-red-dark rounded-3xl p-8 sm:p-10 lg:p-12 shadow-lg relative overflow-hidden group">
-          <div className="absolute top-0 right-0 opacity-[0.08] transform translate-x-20 -translate-y-10 group-hover:scale-105 transition-transform duration-700" aria-hidden="true">
+        <div className="col-span-1 md:col-span-2 lg:col-span-6 bg-gradient-to-r from-pbs-red to-pbs-red-dark rounded-3xl p-8 sm:p-10 lg:p-12 shadow-lg relative overflow-hidden group">
+          <div
+            className="absolute top-0 right-0 opacity-[0.08] transform translate-x-20 -translate-y-10 group-hover:scale-105 transition-transform duration-700"
+            aria-hidden="true"
+          >
             <MessageCircle className="h-64 w-64" strokeWidth={1} />
           </div>
 
           <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div>
               <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                {t('ctaTitle')}
+                {t('solutionsCtaTitle')}
               </h3>
               <p className="text-white/80 mt-2 text-base sm:text-lg max-w-xl">
-                {t('ctaDescription')}
+                {t('solutionsCtaDesc')}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Link href="/products">
+              <Link href="/contact">
                 <Button variant="gold" size="lg" className="group/btn">
-                  {t('shopNow')}
+                  {t('solutionsGetQuote')}
                   <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                 </Button>
               </Link>

@@ -7,7 +7,7 @@
   },
   "Header": {
     "home": "Home",
-    "products": "Products",
+    "packaging": "Packaging",
     "about": "About",
     "contact": "Contact",
     "switchLanguage": "Switch language",
@@ -27,7 +27,7 @@
     "productsTitle": "Products",
     "contactTitle": "Contact",
     "home": "Home",
-    "products": "Products",
+    "packaging": "Packaging",
     "aboutUs": "About Us",
     "contact": "Contact",
     "customCups": "Custom Cups",
@@ -81,7 +81,36 @@
     "ctaDescription": "Get a free quote today. We’ll design your custom packaging and deliver it fast. Call, email, or WhatsApp us — we’re here for you.",
     "whatsapp": "WhatsApp",
     "callUs": "Call Us",
-    "storyText2": "We changed that. Today we serve hundreds of businesses across the United States, offering premium custom cups, bags, boxes, food containers, and labels with low minimum orders, and bilingual support."
+    "storyText2": "We changed that. Today we serve hundreds of businesses across the United States, offering premium custom cups, bags, boxes, food containers, and labels with low minimum orders, and bilingual support.",
+    "solutionsHeroBadge": "One Partner. Every Solution.",
+    "solutionsHeroTitle1": "Everything Your",
+    "solutionsHeroTitle2": "Restaurant Needs",
+    "solutionsHeroDesc": "From branded packaging to AI-powered ordering — Packbrand Solutions is the all-in-one growth partner for restaurants and food brands.",
+    "solutionsGetStarted": "Get Started",
+    "solutionsShopPackaging": "Shop Packaging",
+    "solutionsLive": "Live",
+    "solutionsComingSoon": "Coming Soon",
+    "solutionsExplore": "Explore",
+    "solutionsLearnMore": "Learn More",
+    "packagesName": "PackBrand Packages",
+    "packagesBadge": "Custom Packaging",
+    "packagesTagline": "Your brand on every package.",
+    "packagesDesc": "Premium custom-branded cups, bags, boxes, food containers, and labels with low minimums and fast delivery.",
+    "directName": "PackBrand Direct",
+    "directBadge": "Restaurant SaaS",
+    "directTagline": "Your restaurant, fully digital.",
+    "directDesc": "In partnership with Talos — a complete white-label restaurant platform for online ordering, POS, and loyalty.",
+    "voiceName": "PackBrand Voice",
+    "voiceBadge": "Voice AI",
+    "voiceTagline": "Orders answered, automatically.",
+    "voiceDesc": "AI-powered voice agent that handles phone orders 24/7. Never miss a call, reduce labor costs, delight customers.",
+    "growthName": "PackBrand Growth",
+    "growthBadge": "Digital Marketing",
+    "growthTagline": "Grow with Meta Ads & more.",
+    "growthDesc": "Full-service digital marketing — Meta Ads, Instagram, and beyond. Attract new customers and keep them coming back.",
+    "solutionsCtaTitle": "Ready to grow your business?",
+    "solutionsCtaDesc": "Talk to our team and find the right Packbrand solution for you.",
+    "solutionsGetQuote": "Get a Free Quote"
   },
   "About": {
     "badge": "Our Story",
@@ -228,5 +257,4 @@
     "noOrders": "No orders in this category.",
     "reorderSuccess": "Reorder request submitted — our team will be in touch shortly."
   }
-}
 }
