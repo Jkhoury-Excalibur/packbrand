@@ -14,7 +14,9 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd Pack Brand Solutions website with layout, components, and styling\n\nImplements homepage with hero section, header/footer navigation,\nmobile nav, WhatsApp button, and PBS brand system styling.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(gh api:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nUpdate Claude settings with additional permissions\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:unsplash.com)",
+      "WebFetch(domain:www.pexels.com)"
     ]
   }
 }
