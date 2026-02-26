@@ -7,7 +7,6 @@ import { Package, ShoppingBag, Menu, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { MobileNav } from './MobileNav';
 import { LanguageToggle } from '@/components/shared/LanguageToggle';
-import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { useCartStore } from '@/lib/store/cart';
 
 export function Header() {
@@ -29,13 +28,11 @@ export function Header() {
 
   return (
     <>
-      {/* Red accent line */}
-      <div className="h-1 bg-pbs-red" aria-hidden="true" />
-
       <header
-        className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-pbs-gray-200 dark:bg-pbs-gray-950/95 dark:border-pbs-gray-800"
+        className="sticky top-0 z-50 bg-[#EDE8DE] border-b border-[#D5CFC5] dark:bg-pbs-gray-950/95 dark:border-pbs-gray-800"
         role="banner"
       >
+        <div className="h-1 bg-pbs-red" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Hamburger + Logo */}
@@ -59,8 +56,8 @@ export function Header() {
                 aria-label="Packbrand Solutions - Home"
               >
                 <Package className="h-7 w-7 text-pbs-red group-hover:scale-110 transition-transform" />
-                <span className="text-xl tracking-tight font-light text-pbs-gray-900 dark:text-white">
-                  PACK<span className="font-bold">BRAND</span> <span className="text-sm font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
+                <span className="text-xl tracking-tight text-pbs-gray-900 dark:text-white">
+                  <span className="font-bold text-pbs-red">PACK</span> <span className="font-bold">BRAND</span> <span className="text-sm font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
                 </span>
               </Link>
             </div>
@@ -72,9 +69,9 @@ export function Header() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                    'text-pbs-gray-600 hover:text-pbs-red hover:bg-pbs-gray-50',
-                    'dark:text-pbs-gray-400 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800',
+                    'px-4 py-2 text-sm font-medium transition-colors',
+                    'text-pbs-gray-600 hover:text-pbs-gray-900',
+                    'dark:text-pbs-gray-400 dark:hover:text-white',
                   )}
                 >
                   {link.label}
@@ -89,9 +86,6 @@ export function Header() {
                 variant="compact"
                 className="hidden sm:flex px-3 py-1.5 text-pbs-gray-600 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-400 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800"
               />
-
-              {/* Theme toggle */}
-              <ThemeToggle />
 
               {/* My Account */}
               <Link

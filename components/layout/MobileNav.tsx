@@ -83,7 +83,7 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
           >
             <Package className="h-6 w-6 text-pbs-red" />
             <span className="text-lg tracking-tight font-light text-pbs-gray-900 dark:text-white">
-              PACK<span className="font-bold">BRAND</span> <span className="text-xs font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
+              PACK <span className="font-bold">BRAND</span> <span className="text-xs font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
             </span>
           </Link>
 

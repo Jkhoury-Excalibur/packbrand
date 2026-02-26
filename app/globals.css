@@ -36,6 +36,14 @@
   /* WhatsApp green */
   --color-pbs-whatsapp: #25D366;
   --color-pbs-whatsapp-dark: #1DA851;
+
+  /* Warm cream palette for redesigned home */
+  --color-pbs-cream: #EDE8DE;
+  --color-pbs-cream-dark: #D8D0C2;
+  --color-pbs-card-solutions: #8B2635;
+  --color-pbs-card-direct: #3D5229;
+  --color-pbs-card-growth: #C8912A;
+  --color-pbs-card-voice: #4A3463;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
