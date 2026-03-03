@@ -7,6 +7,7 @@ import { Package, ShoppingBag, Menu, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { MobileNav } from './MobileNav';
 import { LanguageToggle } from '@/components/shared/LanguageToggle';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { useCartStore } from '@/lib/store/cart';
 
 export function Header() {
@@ -29,7 +30,7 @@ export function Header() {
   return (
     <>
       <header
-        className="sticky top-0 z-50 bg-[#EDE8DE] border-b border-[#D5CFC5] dark:bg-pbs-gray-950/95 dark:border-pbs-gray-800"
+        className="sticky top-0 z-50 bg-white border-b border-pbs-gray-200 dark:bg-pbs-gray-950/95 dark:border-pbs-gray-800"
         role="banner"
       >
         <div className="h-1 bg-pbs-red" />
@@ -81,6 +82,9 @@ export function Header() {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-2">
+              {/* Theme toggle */}
+              <ThemeToggle />
+
               {/* Language toggle */}
               <LanguageToggle
                 variant="compact"
