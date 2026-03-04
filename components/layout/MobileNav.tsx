@@ -10,7 +10,10 @@ import { LanguageToggle } from '@/components/shared/LanguageToggle';
 type SubLink = {
   href: string;
   label: string;
+  desc: string;
   icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  badge?: string;
 };
 
 interface NavLink {
@@ -128,28 +131,36 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
                     {/* Sub-links */}
                     {isExpanded && (
                       <ul className="mt-1 ml-4 space-y-1">
-                        {/* "All Products" link */}
-                        <li>
-                          <Link
-                            href={link.href as any}
-                            className="flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold text-pbs-gray-900 dark:text-white hover:text-pbs-red hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors"
-                            onClick={onClose}
-                          >
-                            All Products
-                          </Link>
-                        </li>
-
                         {link.sublinks.map((sub) => {
                           const Icon = sub.icon;
                           return (
                             <li key={sub.href}>
                               <Link
                                 href={sub.href as any}
-                                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm text-pbs-gray-600 dark:text-pbs-gray-400 hover:text-pbs-red dark:hover:text-pbs-red-light hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors"
+                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors"
                                 onClick={onClose}
                               >
-                                <Icon className="h-4 w-4 shrink-0" />
-                                {sub.label}
+                                <div
+                                  className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
+                                  style={{ backgroundColor: sub.color + '18' }}
+                                >
+                                  <Icon className="h-4 w-4" style={{ color: sub.color }} />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-pbs-gray-900 dark:text-white">
+                                      {sub.label}
+                                    </span>
+                                    {sub.badge && (
+                                      <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-pbs-gold/15 text-pbs-gold-dark">
+                                        {sub.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 mt-0.5">
+                                    {sub.desc}
+                                  </p>
+                                </div>
                               </Link>
                             </li>
                           );

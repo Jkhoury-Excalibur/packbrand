@@ -9,10 +9,9 @@ import {
   Menu,
   UserCircle,
   ChevronDown,
-  Coffee,
-  Box,
-  UtensilsCrossed,
-  Sticker,
+  RefreshCw,
+  TrendingUp,
+  Mic2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { MobileNav } from './MobileNav';
@@ -23,7 +22,10 @@ import { useCartStore } from '@/lib/store/cart';
 type SubLink = {
   href: string;
   label: string;
+  desc: string;
   icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  badge?: string;
 };
 
 type NavLink = {
@@ -32,12 +34,36 @@ type NavLink = {
   sublinks?: SubLink[];
 };
 
-const PRODUCT_CATEGORIES: SubLink[] = [
-  { href: '/products?category=cups', label: 'Custom Cups', icon: Coffee },
-  { href: '/products?category=bags', label: 'Branded Bags', icon: ShoppingBag },
-  { href: '/products?category=boxes', label: 'Packaging Boxes', icon: Box },
-  { href: '/products?category=food-containers', label: 'Food Containers', icon: UtensilsCrossed },
-  { href: '/products?category=labels', label: 'Labels & Stickers', icon: Sticker },
+const SOLUTIONS: SubLink[] = [
+  {
+    href: '/packaging',
+    label: 'Pack Brand Packaging',
+    desc: 'Custom branded packaging with low minimums',
+    icon: Package,
+    color: '#E63946',
+  },
+  {
+    href: '/direct',
+    label: 'Pack Brand Direct',
+    desc: 'Commission-free online ordering for restaurants',
+    icon: RefreshCw,
+    color: '#3D5229',
+  },
+  {
+    href: '/growth',
+    label: 'Pack Brand Growth',
+    desc: 'Meta Ads, Instagram & digital marketing',
+    icon: TrendingUp,
+    color: '#C8912A',
+  },
+  {
+    href: '/voice',
+    label: 'Pack Brand Voice',
+    desc: 'AI voice agent for phone orders',
+    icon: Mic2,
+    color: '#4A3463',
+    badge: 'Soon',
+  },
 ];
 
 export function Header() {
@@ -55,8 +81,8 @@ export function Header() {
     { href: '/', label: t('home') },
     {
       href: '/packaging',
-      label: t('packaging'),
-      sublinks: PRODUCT_CATEGORIES,
+      label: t('solutions'),
+      sublinks: SOLUTIONS,
     },
     { href: '/about', label: t('about') },
     { href: '/contact', label: t('contact') },
@@ -114,7 +140,7 @@ export function Header() {
                       <button
                         type="button"
                         className={cn(
-                          'flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors',
+                          'inline-flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors',
                           'text-pbs-gray-600 hover:text-pbs-gray-900',
                           'dark:text-pbs-gray-400 dark:hover:text-white',
                         )}
@@ -124,7 +150,7 @@ export function Header() {
                         {link.label}
                         <ChevronDown
                           className={cn(
-                            'h-3.5 w-3.5 transition-transform duration-200',
+                            'h-3.5 w-3.5 shrink-0 transition-transform duration-200',
                             productsOpen && 'rotate-180',
                           )}
                         />
@@ -140,30 +166,38 @@ export function Header() {
                         )}
                         role="menu"
                       >
-                        <div className="bg-white dark:bg-pbs-gray-900 rounded-2xl shadow-xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-2 w-56">
-                          {/* "All Products" header link */}
-                          <Link
-                            href="/packaging"
-                            className="flex items-center px-3 py-2.5 rounded-xl text-sm font-semibold text-pbs-gray-900 dark:text-white hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors"
-                            onClick={() => setProductsOpen(false)}
-                            role="menuitem"
-                          >
-                            All Products
-                          </Link>
-                          <div className="border-t border-pbs-gray-100 dark:border-pbs-gray-800 my-1.5" />
-
+                        <div className="bg-white dark:bg-pbs-gray-900 rounded-2xl shadow-xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-2 w-72">
                           {link.sublinks.map((sub) => {
                             const Icon = sub.icon;
                             return (
                               <Link
                                 key={sub.href}
                                 href={sub.href as any}
-                                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-pbs-gray-600 dark:text-pbs-gray-400 hover:text-pbs-red dark:hover:text-pbs-red-light hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors"
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors group/item"
                                 onClick={() => setProductsOpen(false)}
                                 role="menuitem"
                               >
-                                <Icon className="h-4 w-4 shrink-0" />
-                                {sub.label}
+                                <div
+                                  className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
+                                  style={{ backgroundColor: sub.color + '18' }}
+                                >
+                                  <Icon className="h-4 w-4" style={{ color: sub.color }} />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-pbs-gray-900 dark:text-white leading-tight">
+                                      {sub.label}
+                                    </span>
+                                    {sub.badge && (
+                                      <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-pbs-gold/15 text-pbs-gold-dark">
+                                        {sub.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 mt-0.5 leading-tight">
+                                    {sub.desc}
+                                  </p>
+                                </div>
                               </Link>
                             );
                           })}

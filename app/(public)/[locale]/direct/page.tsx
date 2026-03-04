@@ -113,15 +113,6 @@ function DirectContent() {
               Get Started
               <ArrowRight className="h-4 w-4" />
             </a>
-            <a
-              href="https://www.ordertalos.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-white/10 text-white font-semibold px-7 py-3.5 rounded-xl border border-white/20 hover:bg-white/20 hover:border-white/40 transition-colors text-base"
-            >
-              About Talos
-              <ArrowRight className="h-4 w-4" />
-            </a>
           </div>
         </div>
 
@@ -284,15 +275,6 @@ function DirectContent() {
             </p>
           </div>
 
-          <a
-            href="https://www.ordertalos.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-pbs-gold text-sm font-medium flex items-center gap-1 mt-6 hover:gap-2 transition-all"
-          >
-            Visit ordertalos.com
-            <ArrowRight className="h-4 w-4" />
-          </a>
         </div>
 
       </section>
