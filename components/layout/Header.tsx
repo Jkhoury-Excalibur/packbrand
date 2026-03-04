@@ -23,7 +23,7 @@ type SubLink = {
   href: string;
   label: string;
   desc: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   color: string;
   badge?: string;
 };
