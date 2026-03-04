@@ -1,15 +1,22 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { Package, X, UserCircle } from 'lucide-react';
+import { Package, X, UserCircle, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { LanguageToggle } from '@/components/shared/LanguageToggle';
+
+type SubLink = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
 
 interface NavLink {
   readonly href: string;
   readonly label: string;
+  readonly sublinks?: readonly SubLink[];
 }
 
 interface MobileNavProps {
@@ -21,9 +28,9 @@ interface MobileNavProps {
 export function MobileNav({ open, onClose, links }: MobileNavProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [expandedHref, setExpandedHref] = useState<string | null>(null);
   const t = useTranslations('MobileNav');
 
-  // Trap focus inside the drawer when open
   useEffect(() => {
     if (open) {
       closeButtonRef.current?.focus();
@@ -31,27 +38,20 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
     } else {
       document.body.style.overflow = '';
     }
-
-    return () => {
-      document.body.style.overflow = '';
-    };
+    return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  // Close on Escape
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && open) {
-        onClose();
-      }
+      if (e.key === 'Escape' && open) onClose();
     }
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, onClose]);
 
   return (
     <>
-      {/* Overlay backdrop */}
+      {/* Overlay */}
       <div
         className={cn(
           'fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
@@ -73,7 +73,7 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        {/* Drawer header */}
+        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-pbs-gray-200 dark:border-pbs-gray-800">
           <Link
             href="/"
@@ -83,7 +83,8 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
           >
             <Package className="h-6 w-6 text-pbs-red" />
             <span className="text-lg tracking-tight font-light text-pbs-gray-900 dark:text-white">
-              PACK <span className="font-bold">BRAND</span> <span className="text-xs font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
+              PACK <span className="font-bold">BRAND</span>{' '}
+              <span className="text-xs font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
             </span>
           </Link>
 
@@ -98,24 +99,83 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
           </button>
         </div>
 
-        {/* Navigation links */}
+        {/* Nav links */}
         <nav className="p-4" aria-label={t('navLabel')}>
           <ul className="space-y-1">
-            {links.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href as any}
-                  className="flex items-center px-4 py-3 rounded-xl text-base font-medium text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
-                  onClick={onClose}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+            {links.map((link) => {
+              if (link.sublinks) {
+                const isExpanded = expandedHref === link.href;
+                return (
+                  <li key={link.href}>
+                    {/* Accordion trigger */}
+                    <button
+                      type="button"
+                      className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-base font-medium text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
+                      onClick={() =>
+                        setExpandedHref(isExpanded ? null : link.href)
+                      }
+                      aria-expanded={isExpanded}
+                    >
+                      <span>{link.label}</span>
+                      <ChevronDown
+                        className={cn(
+                          'h-4 w-4 transition-transform duration-200',
+                          isExpanded && 'rotate-180',
+                        )}
+                      />
+                    </button>
+
+                    {/* Sub-links */}
+                    {isExpanded && (
+                      <ul className="mt-1 ml-4 space-y-1">
+                        {/* "All Products" link */}
+                        <li>
+                          <Link
+                            href={link.href as any}
+                            className="flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold text-pbs-gray-900 dark:text-white hover:text-pbs-red hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors"
+                            onClick={onClose}
+                          >
+                            All Products
+                          </Link>
+                        </li>
+
+                        {link.sublinks.map((sub) => {
+                          const Icon = sub.icon;
+                          return (
+                            <li key={sub.href}>
+                              <Link
+                                href={sub.href as any}
+                                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm text-pbs-gray-600 dark:text-pbs-gray-400 hover:text-pbs-red dark:hover:text-pbs-red-light hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors"
+                                onClick={onClose}
+                              >
+                                <Icon className="h-4 w-4 shrink-0" />
+                                {sub.label}
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </li>
+                );
+              }
+
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href as any}
+                    className="flex items-center px-4 py-3 rounded-xl text-base font-medium text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
+                    onClick={onClose}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
-        {/* My Account link */}
+        {/* My Account */}
         <div className="px-4 mt-2">
           <Link
             href="/account"
@@ -137,7 +197,6 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
           </div>
         </div>
 
-        {/* Bottom accent */}
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-pbs-red" aria-hidden="true" />
       </div>
     </>

@@ -3,16 +3,47 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { Package, ShoppingBag, Menu, UserCircle } from 'lucide-react';
+import {
+  Package,
+  ShoppingBag,
+  Menu,
+  UserCircle,
+  ChevronDown,
+  Coffee,
+  Box,
+  UtensilsCrossed,
+  Sticker,
+} from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { MobileNav } from './MobileNav';
 import { LanguageToggle } from '@/components/shared/LanguageToggle';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { useCartStore } from '@/lib/store/cart';
 
+type SubLink = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+type NavLink = {
+  href: string;
+  label: string;
+  sublinks?: SubLink[];
+};
+
+const PRODUCT_CATEGORIES: SubLink[] = [
+  { href: '/products?category=cups', label: 'Custom Cups', icon: Coffee },
+  { href: '/products?category=bags', label: 'Branded Bags', icon: ShoppingBag },
+  { href: '/products?category=boxes', label: 'Packaging Boxes', icon: Box },
+  { href: '/products?category=food-containers', label: 'Food Containers', icon: UtensilsCrossed },
+  { href: '/products?category=labels', label: 'Labels & Stickers', icon: Sticker },
+];
+
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [productsOpen, setProductsOpen] = useState(false);
   const t = useTranslations('Header');
   const cartItems = useCartStore((s) => s.items);
 
@@ -20,11 +51,15 @@ export function Header() {
 
   const cartCount = mounted ? cartItems.length : 0;
 
-  const navLinks = [
-    { href: '/' as const, label: t('home') },
-    { href: '/packaging' as const, label: t('packaging') },
-    { href: '/about' as const, label: t('about') },
-    { href: '/contact' as const, label: t('contact') },
+  const navLinks: NavLink[] = [
+    { href: '/', label: t('home') },
+    {
+      href: '/packaging',
+      label: t('packaging'),
+      sublinks: PRODUCT_CATEGORIES,
+    },
+    { href: '/about', label: t('about') },
+    { href: '/contact', label: t('contact') },
   ];
 
   return (
@@ -36,9 +71,9 @@ export function Header() {
         <div className="h-1 bg-pbs-red" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+
             {/* Left: Hamburger + Logo */}
             <div className="flex items-center gap-3">
-              {/* Mobile hamburger */}
               <button
                 type="button"
                 className="lg:hidden p-2 rounded-lg text-pbs-gray-700 hover:bg-pbs-gray-100 dark:text-pbs-gray-300 dark:hover:bg-pbs-gray-800 transition-colors"
@@ -50,7 +85,6 @@ export function Header() {
                 <Menu className="h-6 w-6" />
               </button>
 
-              {/* Logo */}
               <Link
                 href="/"
                 className="flex items-center gap-2 group"
@@ -58,40 +92,112 @@ export function Header() {
               >
                 <Package className="h-7 w-7 text-pbs-red group-hover:scale-110 transition-transform" />
                 <span className="text-xl tracking-tight text-pbs-gray-900 dark:text-white">
-                  <span className="font-bold text-pbs-red">PACK</span> <span className="font-bold">BRAND</span> <span className="text-sm font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
+                  <span className="font-bold text-pbs-red">PACK</span>{' '}
+                  <span className="font-bold">BRAND</span>{' '}
+                  <span className="text-sm font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
                 </span>
               </Link>
             </div>
 
             {/* Center: Desktop nav */}
             <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    'px-4 py-2 text-sm font-medium transition-colors',
-                    'text-pbs-gray-600 hover:text-pbs-gray-900',
-                    'dark:text-pbs-gray-400 dark:hover:text-white',
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                if (link.sublinks) {
+                  return (
+                    <div
+                      key={link.href}
+                      className="relative"
+                      onMouseEnter={() => setProductsOpen(true)}
+                      onMouseLeave={() => setProductsOpen(false)}
+                    >
+                      {/* Trigger */}
+                      <button
+                        type="button"
+                        className={cn(
+                          'flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors',
+                          'text-pbs-gray-600 hover:text-pbs-gray-900',
+                          'dark:text-pbs-gray-400 dark:hover:text-white',
+                        )}
+                        aria-expanded={productsOpen}
+                        aria-haspopup="menu"
+                      >
+                        {link.label}
+                        <ChevronDown
+                          className={cn(
+                            'h-3.5 w-3.5 transition-transform duration-200',
+                            productsOpen && 'rotate-180',
+                          )}
+                        />
+                      </button>
+
+                      {/* Dropdown panel */}
+                      <div
+                        className={cn(
+                          'absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 transition-all duration-200',
+                          productsOpen
+                            ? 'opacity-100 translate-y-0 pointer-events-auto'
+                            : 'opacity-0 translate-y-1 pointer-events-none',
+                        )}
+                        role="menu"
+                      >
+                        <div className="bg-white dark:bg-pbs-gray-900 rounded-2xl shadow-xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-2 w-56">
+                          {/* "All Products" header link */}
+                          <Link
+                            href="/packaging"
+                            className="flex items-center px-3 py-2.5 rounded-xl text-sm font-semibold text-pbs-gray-900 dark:text-white hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors"
+                            onClick={() => setProductsOpen(false)}
+                            role="menuitem"
+                          >
+                            All Products
+                          </Link>
+                          <div className="border-t border-pbs-gray-100 dark:border-pbs-gray-800 my-1.5" />
+
+                          {link.sublinks.map((sub) => {
+                            const Icon = sub.icon;
+                            return (
+                              <Link
+                                key={sub.href}
+                                href={sub.href as any}
+                                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-pbs-gray-600 dark:text-pbs-gray-400 hover:text-pbs-red dark:hover:text-pbs-red-light hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 transition-colors"
+                                onClick={() => setProductsOpen(false)}
+                                role="menuitem"
+                              >
+                                <Icon className="h-4 w-4 shrink-0" />
+                                {sub.label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href as any}
+                    className={cn(
+                      'px-4 py-2 text-sm font-medium transition-colors',
+                      'text-pbs-gray-600 hover:text-pbs-gray-900',
+                      'dark:text-pbs-gray-400 dark:hover:text-white',
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Right: Actions */}
             <div className="flex items-center gap-2">
-              {/* Theme toggle */}
               <ThemeToggle />
 
-              {/* Language toggle */}
               <LanguageToggle
                 variant="compact"
                 className="hidden sm:flex px-3 py-1.5 text-pbs-gray-600 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-400 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800"
               />
 
-              {/* My Account */}
               <Link
                 href="/account"
                 className="p-2 rounded-lg text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
@@ -100,7 +206,6 @@ export function Header() {
                 <UserCircle className="h-5 w-5" />
               </Link>
 
-              {/* Cart */}
               <Link
                 href="/cart"
                 className="relative p-2 rounded-lg text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
@@ -121,7 +226,6 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile navigation drawer */}
       <MobileNav
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
