@@ -1,4 +1,7 @@
+'use client';
+
 import { Bell } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
 
 type Props = {
   title: string;
@@ -6,6 +9,15 @@ type Props = {
 };
 
 export function AdminHeader({ title, subtitle }: Props) {
+  const { data: session } = authClient.useSession();
+  const name = session?.user?.name || '';
+  const initials = name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <header className="h-16 bg-white dark:bg-pbs-gray-900 border-b border-pbs-gray-100 dark:border-pbs-gray-800 flex items-center justify-between px-6 shrink-0">
       <div>
@@ -27,11 +39,11 @@ export function AdminHeader({ title, subtitle }: Props) {
         {/* Avatar */}
         <div className="flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-full bg-pbs-red flex items-center justify-center text-white text-xs font-bold shrink-0">
-            RD
+            {initials || '?'}
           </div>
           <div className="hidden sm:block text-right">
-            <p className="text-sm font-semibold text-pbs-gray-900 dark:text-white leading-tight">Rafael Diaz</p>
-            <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400">Owner</p>
+            <p className="text-sm font-semibold text-pbs-gray-900 dark:text-white leading-tight">{name}</p>
+            <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 capitalize">{(session?.user as Record<string, unknown>)?.role as string || 'Admin'}</p>
           </div>
         </div>
       </div>
