@@ -138,10 +138,18 @@ export function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-pbs-gray-800 pt-6 text-center">
+        <div className="border-t border-pbs-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-pbs-gray-600">
             {t('copyright', { year: currentYear })}
           </p>
+          <div className="flex items-center gap-4">
+            <Link href="/terms" className="text-xs text-pbs-gray-600 hover:text-pbs-red transition-colors">
+              Terms of Service
+            </Link>
+            <Link href="/privacy" className="text-xs text-pbs-gray-600 hover:text-pbs-red transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

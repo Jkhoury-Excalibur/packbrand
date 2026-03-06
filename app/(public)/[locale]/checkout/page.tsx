@@ -6,12 +6,15 @@ import { Link } from '@/i18n/navigation';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useCartStore } from '@/lib/store/cart';
+import { createOrder } from '@/lib/actions/orders';
 
 const INPUT_CLS = 'w-full px-4 py-3 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors';
 const LABEL_CLS = 'block text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-2';
 
 export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
   const router = useRouter();
@@ -21,11 +24,56 @@ export default function CheckoutPage() {
   if (!mounted) return null;
 
   const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+  const shipping = subtotal >= 500 ? 0 : 49.99;
+  const total = subtotal + shipping;
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError('');
+
+    const form = e.target as HTMLFormElement;
+    const get = (id: string) => (form.elements.namedItem(id) as HTMLInputElement | HTMLTextAreaElement)?.value ?? '';
+
+    const orderData = {
+      contact: {
+        firstName: get('firstName'),
+        lastName: get('lastName'),
+        email: get('email'),
+        phone: get('phone'),
+        company: get('company') || undefined,
+      },
+      shippingAddress: {
+        line1: get('address1'),
+        line2: get('address2') || undefined,
+        city: get('city'),
+        state: get('state'),
+        zip: get('zip'),
+        country: get('country') || 'United States',
+      },
+      items: items.map((item) => ({
+        productId: item.productId,
+        name: item.name,
+        categoryId: item.categoryId,
+        categoryName: item.categoryName,
+        size: item.size,
+        qty: item.qty,
+        unitPrice: item.unitPrice,
+        lineTotal: item.lineTotal,
+      })),
+      specialInstructions: get('instructions') || undefined,
+    };
+
+    const result = await createOrder(orderData);
+    setSubmitting(false);
+
+    if ('error' in result) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
     clearCart();
-    router.push('/checkout/success');
+    router.push(`/checkout/success?order=${result.orderNumber}`);
   };
 
   if (items.length === 0) {
@@ -56,29 +104,35 @@ export default function CheckoutPage() {
           {/* Left column — forms */}
           <div className="lg:col-span-2 space-y-6">
 
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
+                {error}
+              </div>
+            )}
+
             {/* Contact Information */}
             <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 sm:p-8">
               <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white mb-6">Contact Information</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="firstName" className={LABEL_CLS}>First Name</label>
-                  <input id="firstName" type="text" required placeholder="Maria" className={INPUT_CLS} />
+                  <input id="firstName" name="firstName" type="text" required placeholder="Maria" className={INPUT_CLS} />
                 </div>
                 <div>
                   <label htmlFor="lastName" className={LABEL_CLS}>Last Name</label>
-                  <input id="lastName" type="text" required placeholder="Lopez" className={INPUT_CLS} />
+                  <input id="lastName" name="lastName" type="text" required placeholder="Lopez" className={INPUT_CLS} />
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor="email" className={LABEL_CLS}>Email Address</label>
-                  <input id="email" type="email" required placeholder="maria@example.com" className={INPUT_CLS} />
+                  <input id="email" name="email" type="email" required placeholder="maria@example.com" className={INPUT_CLS} />
                 </div>
                 <div>
                   <label htmlFor="phone" className={LABEL_CLS}>Phone Number</label>
-                  <input id="phone" type="tel" placeholder="(555) 000-0000" className={INPUT_CLS} />
+                  <input id="phone" name="phone" type="tel" required placeholder="(555) 000-0000" className={INPUT_CLS} />
                 </div>
                 <div>
                   <label htmlFor="company" className={LABEL_CLS}>Company Name</label>
-                  <input id="company" type="text" placeholder="Your Business" className={INPUT_CLS} />
+                  <input id="company" name="company" type="text" placeholder="Your Business" className={INPUT_CLS} />
                 </div>
               </div>
             </div>
@@ -89,27 +143,27 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="sm:col-span-2">
                   <label htmlFor="address1" className={LABEL_CLS}>Address Line 1</label>
-                  <input id="address1" type="text" required placeholder="123 Main Street" className={INPUT_CLS} />
+                  <input id="address1" name="address1" type="text" required placeholder="123 Main Street" className={INPUT_CLS} />
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor="address2" className={LABEL_CLS}>Address Line 2 <span className="normal-case font-normal">(optional)</span></label>
-                  <input id="address2" type="text" placeholder="Suite, floor, unit..." className={INPUT_CLS} />
+                  <input id="address2" name="address2" type="text" placeholder="Suite, floor, unit..." className={INPUT_CLS} />
                 </div>
                 <div>
                   <label htmlFor="city" className={LABEL_CLS}>City</label>
-                  <input id="city" type="text" required placeholder="New York" className={INPUT_CLS} />
+                  <input id="city" name="city" type="text" required placeholder="New York" className={INPUT_CLS} />
                 </div>
                 <div>
                   <label htmlFor="state" className={LABEL_CLS}>State</label>
-                  <input id="state" type="text" required placeholder="NY" className={INPUT_CLS} />
+                  <input id="state" name="state" type="text" required placeholder="NY" className={INPUT_CLS} />
                 </div>
                 <div>
                   <label htmlFor="zip" className={LABEL_CLS}>ZIP Code</label>
-                  <input id="zip" type="text" required placeholder="10001" className={INPUT_CLS} />
+                  <input id="zip" name="zip" type="text" required placeholder="10001" className={INPUT_CLS} />
                 </div>
                 <div>
                   <label htmlFor="country" className={LABEL_CLS}>Country</label>
-                  <input id="country" type="text" defaultValue="United States" className={INPUT_CLS} />
+                  <input id="country" name="country" type="text" defaultValue="United States" className={INPUT_CLS} />
                 </div>
               </div>
             </div>
@@ -121,6 +175,7 @@ export default function CheckoutPage() {
                 <label htmlFor="instructions" className={LABEL_CLS}>Print notes, artwork details, or special requests <span className="normal-case font-normal">(optional)</span></label>
                 <textarea
                   id="instructions"
+                  name="instructions"
                   rows={4}
                   placeholder="e.g. Please use Pantone 485 for the logo. Artwork file will be emailed separately..."
                   className={`${INPUT_CLS} resize-none`}
@@ -159,21 +214,26 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-pbs-gray-600 dark:text-pbs-gray-400">
                   <span>Shipping</span>
-                  <span className="text-green-600 dark:text-green-400 font-medium">Free</span>
+                  <span className={shipping === 0 ? 'text-green-600 dark:text-green-400 font-medium' : ''}>
+                    {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+                  </span>
                 </div>
                 <div className="flex justify-between font-bold text-pbs-gray-900 dark:text-white text-base border-t border-pbs-gray-100 dark:border-pbs-gray-800 pt-2">
                   <span>Total</span>
-                  <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span>${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               </div>
 
-              <Button type="submit" variant="primary" size="lg" className="w-full">
-                Place Order
-                <ArrowRight className="ml-2 h-4 w-4" />
+              <Button type="submit" variant="primary" size="lg" className="w-full" disabled={submitting}>
+                {submitting ? 'Placing Order...' : 'Place Order'}
+                {!submitting && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
 
               <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 text-center leading-relaxed">
-                We'll send you an invoice after confirming your order details.
+                By placing your order, you agree to our{' '}
+                <Link href="/terms" className="text-pbs-red hover:underline font-medium">Terms</Link>
+                {' '}and{' '}
+                <Link href="/privacy" className="text-pbs-red hover:underline font-medium">Privacy Policy</Link>.
               </p>
             </div>
           </div>

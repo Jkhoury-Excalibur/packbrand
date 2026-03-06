@@ -3,9 +3,10 @@ import { persist } from 'zustand/middleware';
 
 export type CartItem = {
   id: string;          // `${productId}-${size}` for uniqueness
-  productId: number;
+  productId: string;
   name: string;
-  category: string;
+  categoryId: string;
+  categoryName: string;
   size: string;
   qtyLabel: string;    // display string e.g. "251–500 units"
   qty: number;         // numeric e.g. 375
@@ -44,6 +45,14 @@ export const useCartStore = create<CartStore>()(
 
       clearCart: () => set({ items: [] }),
     }),
-    { name: 'pbs-cart' },
+    {
+      name: 'pbs-cart',
+      version: 2,
+      migrate: () => {
+        // v1→v2: category string replaced with categoryId+categoryName
+        // Clear old cart items since they have incompatible shape
+        return { items: [] };
+      },
+    },
   ),
 );

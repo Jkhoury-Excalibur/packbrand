@@ -18,14 +18,15 @@ const QUANTITY_OPTIONS = [
 
 // Only serializable fields — no LucideIcon, no methods
 type ProductOptionsProps = {
-  id: number;
+  id: string;
   name: string;
-  category: string;
+  categoryId: string;
+  categoryName: string;
   sizes?: string[];
   basePrice: number;
 };
 
-export function ProductOptions({ id, name, category, sizes, basePrice }: ProductOptionsProps) {
+export function ProductOptions({ id, name, categoryId, categoryName, sizes, basePrice }: ProductOptionsProps) {
   const t = useTranslations('ProductDetail');
   const [selectedSize, setSelectedSize] = useState(sizes?.[0] ?? '');
   const [selectedQty, setSelectedQty] = useState(QUANTITY_OPTIONS[0]);
@@ -38,7 +39,8 @@ export function ProductOptions({ id, name, category, sizes, basePrice }: Product
       id: `${id}-${selectedSize || 'default'}`,
       productId: id,
       name,
-      category,
+      categoryId,
+      categoryName,
       size: selectedSize || 'Standard',
       qtyLabel: selectedQty.label,
       qty: selectedQty.qty,

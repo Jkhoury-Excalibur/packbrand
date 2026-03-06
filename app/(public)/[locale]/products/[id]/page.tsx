@@ -3,34 +3,83 @@ import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Check, ChevronRight } from 'lucide-react';
-import { ALL_PRODUCTS, type Product } from '@/lib/data/products';
+import { getProductById, getActiveProducts } from '@/lib/db/products';
+import { getCategoryById } from '@/lib/db/categories';
+import { getProductIcon } from '@/lib/utils/icons';
 import { ProductOptions } from '@/components/shared/ProductOptions';
+import { ProductReviews } from '@/components/shared/ProductReviews';
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
 };
 
-export function generateStaticParams() {
-  return ALL_PRODUCTS.map((p) => ({ id: String(p.id) }));
-}
-
 export default async function ProductDetailPage({ params }: Props) {
   const { locale, id } = await params;
   setRequestLocale(locale);
 
-  const product = ALL_PRODUCTS.find((p) => p.id === Number(id));
-  if (!product) notFound();
+  const product = await getProductById(id);
+  if (!product || !product.isActive) notFound();
 
-  return <ProductDetailContent product={product} />;
+  // Fetch category for breadcrumb and related products
+  const category = await getCategoryById(product.categoryId);
+  const categoryName = category
+    ? (locale === 'es' && category.nameEs ? category.nameEs : category.name)
+    : '';
+  const categorySlug = category?.slug ?? '';
+  const categoryIconName = category?.iconName ?? 'Package';
+
+  const allProducts = await getActiveProducts();
+  const related = allProducts
+    .filter((p) => p.categoryId === product.categoryId && p._id.toString() !== product._id.toString())
+    .slice(0, 3);
+
+  const pid = product._id.toString();
+  const iconName = product.iconName || categoryIconName;
+  const Icon = getProductIcon(iconName);
+
+  // Resolve locale-aware product fields
+  const localizedName = locale === 'es' && product.nameEs ? product.nameEs : product.name;
+  const localizedShortDesc = locale === 'es' && product.shortDescEs ? product.shortDescEs : product.shortDescription;
+  const localizedDesc = locale === 'es' && product.descEs ? product.descEs : product.description;
+
+  // Localize related products
+  const localizedRelated = related.map((rp: any) => ({
+    ...rp,
+    name: locale === 'es' && rp.nameEs ? rp.nameEs : rp.name,
+    shortDescription: locale === 'es' && rp.shortDescEs ? rp.shortDescEs : rp.shortDescription,
+  }));
+
+  return (
+    <ProductDetailContent
+      product={product}
+      pid={pid}
+      Icon={Icon}
+      related={localizedRelated}
+      categoryName={categoryName}
+      categorySlug={categorySlug}
+      categoryId={product.categoryId}
+      categoryIconName={categoryIconName}
+      localizedName={localizedName}
+      localizedShortDesc={localizedShortDesc}
+      localizedDesc={localizedDesc}
+    />
+  );
 }
 
-function ProductDetailContent({ product }: { product: Product }) {
+function ProductDetailContent({ product, pid, Icon, related, categoryName, categorySlug, categoryId, categoryIconName, localizedName, localizedShortDesc, localizedDesc }: {
+  product: any;
+  pid: string;
+  Icon: any;
+  related: any[];
+  categoryName: string;
+  categorySlug: string;
+  categoryId: string;
+  categoryIconName: string;
+  localizedName: string;
+  localizedShortDesc: string;
+  localizedDesc: string;
+}) {
   const t = useTranslations('ProductDetail');
-  const Icon = product.icon;
-
-  const related = ALL_PRODUCTS.filter(
-    (p) => p.category === product.category && p.id !== product.id,
-  ).slice(0, 3);
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
@@ -42,8 +91,16 @@ function ProductDetailContent({ product }: { product: Product }) {
         <Link href="/products" className="hover:text-pbs-red transition-colors">
           {t('breadcrumb')}
         </Link>
+        {categoryName && (
+          <>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+            <Link href={`/products?category=${categorySlug}` as any} className="hover:text-pbs-red transition-colors">
+              {categoryName}
+            </Link>
+          </>
+        )}
         <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-        <span className="text-pbs-gray-900 dark:text-white font-medium truncate">{product.name}</span>
+        <span className="text-pbs-gray-900 dark:text-white font-medium truncate">{localizedName}</span>
       </nav>
 
       {/* ── MAIN PRODUCT SECTION ── */}
@@ -51,11 +108,13 @@ function ProductDetailContent({ product }: { product: Product }) {
 
         {/* Left — image area */}
         <div className="space-y-3">
-          {/* Main image placeholder */}
           <div className="bg-pbs-gray-100 dark:bg-pbs-gray-800/60 rounded-3xl aspect-square flex items-center justify-center border border-pbs-gray-200 dark:border-pbs-gray-700">
-            <Icon className="h-36 w-36 text-pbs-gray-300 dark:text-pbs-gray-600" strokeWidth={0.75} />
+            {product.images && product.images.length > 0 ? (
+              <img src={product.images[0]} alt={localizedName} className="object-cover w-full h-full rounded-3xl" />
+            ) : (
+              <Icon className="h-36 w-36 text-pbs-gray-300 dark:text-pbs-gray-600" strokeWidth={0.75} />
+            )}
           </div>
-          {/* Thumbnail strip */}
           <div className="grid grid-cols-4 gap-3">
             {[0, 1, 2, 3].map((i) => (
               <div
@@ -66,7 +125,11 @@ function ProductDetailContent({ product }: { product: Product }) {
                     : 'border-transparent hover:border-pbs-gray-300 dark:hover:border-pbs-gray-600 cursor-pointer'
                 }`}
               >
-                <Icon className="h-8 w-8 text-pbs-gray-300 dark:text-pbs-gray-600" strokeWidth={1} />
+                {product.images && product.images[i] ? (
+                  <img src={product.images[i]} alt="" className="object-cover w-full h-full rounded-2xl" />
+                ) : (
+                  <Icon className="h-8 w-8 text-pbs-gray-300 dark:text-pbs-gray-600" strokeWidth={1} />
+                )}
               </div>
             ))}
           </div>
@@ -74,28 +137,26 @@ function ProductDetailContent({ product }: { product: Product }) {
 
         {/* Right — product details */}
         <div className="space-y-6">
-          {/* Category tag + name */}
           <div>
             <span className="text-xs font-bold text-pbs-red uppercase tracking-widest">
               {product.tags[0]}
             </span>
             <h1 className="text-3xl sm:text-4xl font-bold text-pbs-gray-900 dark:text-white tracking-tight mt-2 leading-tight">
-              {product.name}
+              {localizedName}
             </h1>
             <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-3 leading-relaxed">
-              {product.shortDescription}
+              {localizedShortDesc}
             </p>
           </div>
 
           <hr className="border-pbs-gray-100 dark:border-pbs-gray-800" />
 
-          {/* Key features */}
           <div>
             <p className="text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-4">
               {t('featuresTitle')}
             </p>
             <ul className="space-y-3">
-              {product.features.map((feature) => (
+              {product.features.map((feature: string) => (
                 <li key={feature} className="flex items-start gap-3 text-sm text-pbs-gray-700 dark:text-pbs-gray-300">
                   <span className="shrink-0 h-5 w-5 rounded-full bg-pbs-red/10 dark:bg-pbs-red/20 flex items-center justify-center mt-0.5">
                     <Check className="h-3 w-3 text-pbs-red" strokeWidth={2.5} />
@@ -108,11 +169,11 @@ function ProductDetailContent({ product }: { product: Product }) {
 
           <hr className="border-pbs-gray-100 dark:border-pbs-gray-800" />
 
-          {/* Options: size picker, quantity, CTAs, trust — client component */}
           <ProductOptions
-            id={product.id}
-            name={product.name}
-            category={product.category}
+            id={pid}
+            name={localizedName}
+            categoryId={categoryId}
+            categoryName={categoryName}
             sizes={product.sizes}
             basePrice={product.basePrice}
           />
@@ -121,23 +182,21 @@ function ProductDetailContent({ product }: { product: Product }) {
 
       {/* ── DESCRIPTION + SPECS ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Long description */}
         <div className="lg:col-span-2 bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl p-8 sm:p-10 border border-pbs-gray-100 dark:border-pbs-gray-800">
           <h2 className="text-xl font-bold text-pbs-gray-900 dark:text-white mb-4">
             {t('descriptionTitle')}
           </h2>
           <p className="text-pbs-gray-600 dark:text-pbs-gray-400 leading-relaxed">
-            {product.description}
+            {localizedDesc}
           </p>
         </div>
 
-        {/* Specs table */}
         <div className="bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl p-8 sm:p-10 border border-pbs-gray-100 dark:border-pbs-gray-800">
           <h2 className="text-xl font-bold text-pbs-gray-900 dark:text-white mb-4">
             {t('specsTitle')}
           </h2>
           <div className="space-y-3">
-            {product.specs.map((spec) => (
+            {product.specs.map((spec: { label: string; value: string }) => (
               <div
                 key={spec.label}
                 className="flex justify-between gap-4 text-sm border-b border-pbs-gray-100 dark:border-pbs-gray-800 pb-3 last:border-0 last:pb-0"
@@ -150,6 +209,9 @@ function ProductDetailContent({ product }: { product: Product }) {
         </div>
       </div>
 
+      {/* ── REVIEWS ── */}
+      <ProductReviews category={categorySlug} />
+
       {/* ── RELATED PRODUCTS ── */}
       {related.length > 0 && (
         <div>
@@ -158,11 +220,13 @@ function ProductDetailContent({ product }: { product: Product }) {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {related.map((rp) => {
-              const RIcon = rp.icon;
+              const rIconName = rp.iconName || categoryIconName;
+              const RIcon = getProductIcon(rIconName);
+              const rpid = rp._id.toString();
               return (
                 <Link
-                  key={rp.id}
-                  href={`/products/${rp.id}` as any}
+                  key={rpid}
+                  href={`/products/${rpid}` as any}
                   className="group bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   <div className="h-36 bg-pbs-gray-100 dark:bg-pbs-gray-800 flex items-center justify-center">

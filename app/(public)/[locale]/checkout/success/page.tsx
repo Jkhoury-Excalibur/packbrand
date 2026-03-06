@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { CheckCircle, Package, Palette, Factory, Truck, ArrowRight, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -12,12 +13,9 @@ const STEPS = [
   { icon: Truck,       label: 'Shipping',         desc: 'Delivered to your door' },
 ];
 
-export default function OrderSuccessPage() {
-  const [orderNumber, setOrderNumber] = useState('');
-
-  useEffect(() => {
-    setOrderNumber(`ORD-${Math.floor(1000 + Math.random() * 9000)}`);
-  }, []);
+function SuccessContent() {
+  const searchParams = useSearchParams();
+  const orderNumber = searchParams.get('order') ?? '';
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-8">
@@ -89,5 +87,13 @@ export default function OrderSuccessPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense>
+      <SuccessContent />
+    </Suspense>
   );
 }

@@ -5,16 +5,35 @@ import { useRouter } from 'next/navigation';
 import { Package, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/Button';
+import { authClient } from '@/lib/auth-client';
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => router.push('/account'), 800);
+    setError('');
+
+    const form = new FormData(e.currentTarget);
+    const email = form.get('email') as string;
+    const password = form.get('password') as string;
+
+    const { error: authError } = await authClient.signIn.email({
+      email,
+      password,
+    });
+
+    if (authError) {
+      setError(authError.message || 'Invalid email or password.');
+      setLoading(false);
+      return;
+    }
+
+    router.push('/account');
   };
 
   return (
@@ -42,6 +61,12 @@ export default function LoginPage() {
         {/* Card */}
         <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 shadow-sm p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
+                {error}
+              </div>
+            )}
+
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-2">
@@ -51,8 +76,9 @@ export default function LoginPage() {
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-pbs-gray-400" />
                 <input
                   id="email"
+                  name="email"
                   type="email"
-                  defaultValue="maria@gopicadera.com"
+                  required
                   className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors"
                   placeholder="you@yourcompany.com"
                 />
@@ -65,16 +91,17 @@ export default function LoginPage() {
                 <label htmlFor="password" className="block text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest">
                   Password
                 </label>
-                <button type="button" className="text-xs text-pbs-red hover:underline font-medium">
+                <Link href="/forgot-password" className="text-xs text-pbs-red hover:underline font-medium">
                   Forgot password?
-                </button>
+                </Link>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-pbs-gray-400" />
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
-                  defaultValue="password123"
+                  required
                   className="w-full pl-10 pr-10 py-3 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors"
                   placeholder="Your password"
                 />
@@ -96,8 +123,8 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-pbs-gray-500 dark:text-pbs-gray-400 mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/contact" className="text-pbs-red font-medium hover:underline">
-              Contact us
+            <Link href="/signup" className="text-pbs-red font-medium hover:underline">
+              Sign up
             </Link>
           </p>
         </div>

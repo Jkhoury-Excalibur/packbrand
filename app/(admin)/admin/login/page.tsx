@@ -4,16 +4,43 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { authClient } from '@/lib/auth-client';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => router.push('/admin/dashboard'), 800);
+    setError('');
+
+    const form = new FormData(e.currentTarget);
+    const email = form.get('email') as string;
+    const password = form.get('password') as string;
+
+    const { data, error: authError } = await authClient.signIn.email({
+      email,
+      password,
+    });
+
+    if (authError) {
+      setError(authError.message || 'Invalid credentials.');
+      setLoading(false);
+      return;
+    }
+
+    // Check admin role
+    if ((data?.user as Record<string, unknown>)?.role !== 'admin') {
+      setError('Access denied. Admin credentials required.');
+      await authClient.signOut();
+      setLoading(false);
+      return;
+    }
+
+    router.push('/admin/dashboard');
   };
 
   return (
@@ -44,6 +71,12 @@ export default function AdminLoginPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
+                {error}
+              </div>
+            )}
+
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-2">
@@ -53,8 +86,9 @@ export default function AdminLoginPage() {
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-pbs-gray-400" />
                 <input
                   id="email"
+                  name="email"
                   type="email"
-                  defaultValue="admin@packbrandsolutions.com"
+                  required
                   className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors"
                   placeholder="admin@packbrandsolutions.com"
                 />
@@ -70,8 +104,9 @@ export default function AdminLoginPage() {
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-pbs-gray-400" />
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
-                  defaultValue="••••••••"
+                  required
                   className="w-full pl-10 pr-10 py-3 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors"
                   placeholder="Enter your password"
                 />

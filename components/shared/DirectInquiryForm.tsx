@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CheckCircle2 } from 'lucide-react';
+import { submitInquiry } from '@/lib/actions/inquiries';
 
 type FormState = {
   firstName: string;
@@ -39,11 +40,21 @@ export function DirectInquiryForm() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
+  const [error, setError] = useState('');
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 800));
+    setError('');
+
+    const result = await submitInquiry({ type: 'direct' as const, ...form });
     setSubmitting(false);
+
+    if ('error' in result) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
     setSubmitted(true);
   }
 
@@ -77,6 +88,11 @@ export function DirectInquiryForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
+          {error}
+        </div>
+      )}
       {/* Name row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>

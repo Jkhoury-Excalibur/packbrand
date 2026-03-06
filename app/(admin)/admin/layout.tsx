@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import '../../globals.css';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
@@ -21,12 +20,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       </head>
       <body className={`${geistSans.variable} antialiased bg-pbs-gray-50 dark:bg-pbs-gray-950`}>
-        <div className="flex min-h-screen">
-          <AdminSidebar />
-          <div className="flex-1 flex flex-col min-w-0">
-            {children}
-          </div>
-        </div>
+        {children}
       </body>
     </html>
   );

@@ -1,20 +1,31 @@
 import { ArrowRight, ShoppingCart, User, MapPin, MessageCircle, Package } from 'lucide-react';
 import Link from 'next/link';
 import { StatusBadge } from '@/components/admin/StatusBadge';
-import { Button } from '@/components/ui/Button';
-import { ACCOUNT_ORDERS } from '@/lib/data/mock-account-orders';
+import { requireAuth } from '@/lib/auth-helpers';
+import { getUserOrders } from '@/lib/db/orders';
+import { getUserAddresses } from '@/lib/db/addresses';
+import type { OrderStatus } from '@/lib/data/mock-orders';
 
-const recentOrders = ACCOUNT_ORDERS.slice(0, 3);
-const totalSpend   = ACCOUNT_ORDERS.reduce((s, o) => s + o.total, 0);
+export default async function AccountOverviewPage() {
+  const session = await requireAuth();
+  const user = session.user as { id: string; name: string; email: string; company?: string; createdAt?: Date | string };
 
-const quickLinks = [
-  { href: '/account/orders',    label: 'View All Orders',     icon: ShoppingCart, desc: `${ACCOUNT_ORDERS.length} orders placed`          },
-  { href: '/account/profile',   label: 'Edit Profile',        icon: User,         desc: 'Update your info'                                 },
-  { href: '/account/addresses', label: 'Manage Addresses',    icon: MapPin,       desc: '2 saved addresses'                                },
-  { href: '/contact',           label: 'Contact Support',     icon: MessageCircle, desc: 'We reply within 24h'                             },
-];
+  const orders = await getUserOrders(user.id);
+  const addresses = await getUserAddresses(user.id);
+  const recentOrders = orders.slice(0, 3);
+  const totalSpend = orders.reduce((s, o) => s + o.total, 0);
 
-export default function AccountOverviewPage() {
+  const memberSince = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : '';
+
+  const quickLinks = [
+    { href: '/account/orders',    label: 'View All Orders',  icon: ShoppingCart,  desc: `${orders.length} orders placed` },
+    { href: '/account/profile',   label: 'Edit Profile',     icon: User,          desc: 'Update your info' },
+    { href: '/account/addresses', label: 'Manage Addresses', icon: MapPin,        desc: `${addresses.length} saved addresses` },
+    { href: '/contact',           label: 'Contact Support',  icon: MessageCircle, desc: 'We reply within 24h' },
+  ];
+
   return (
     <div className="space-y-6">
 
@@ -25,16 +36,19 @@ export default function AccountOverviewPage() {
         </div>
         <div className="relative z-10">
           <p className="text-white/70 text-sm font-medium mb-1">Welcome back</p>
-          <h1 className="text-3xl font-bold tracking-tight">Maria Lopez</h1>
-          <p className="text-white/70 mt-1">Go Picadera · Member since July 2025</p>
+          <h1 className="text-3xl font-bold tracking-tight">{user.name}</h1>
+          <p className="text-white/70 mt-1">
+            {(user as Record<string, unknown>).company ? `${(user as Record<string, unknown>).company} · ` : ''}
+            {memberSince ? `Member since ${memberSince}` : ''}
+          </p>
         </div>
 
         {/* Stats */}
         <div className="relative z-10 grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/15">
           {[
-            { label: 'Total Orders',  value: String(ACCOUNT_ORDERS.length) },
+            { label: 'Total Orders',  value: String(orders.length) },
             { label: 'Total Spent',   value: `$${totalSpend.toLocaleString()}` },
-            { label: 'Last Order',    value: ACCOUNT_ORDERS[0]?.date ?? '—' },
+            { label: 'Last Order',    value: orders[0] ? new Date(orders[0].createdAt).toLocaleDateString() : '—' },
           ].map(({ label, value }) => (
             <div key={label}>
               <p className="text-white/60 text-xs font-medium">{label}</p>
@@ -52,33 +66,37 @@ export default function AccountOverviewPage() {
             View all <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-pbs-gray-100 dark:border-pbs-gray-800">
-                {['Order', 'Product', 'Date', 'Total', 'Status', ''].map((h) => (
-                  <th key={h} className="px-6 py-3 text-left text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {recentOrders.map((order) => (
-                <tr key={order.id} className="border-b border-pbs-gray-100 dark:border-pbs-gray-800 last:border-0 hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800/50 transition-colors">
-                  <td className="px-6 py-3.5 font-mono text-xs text-pbs-gray-500 dark:text-pbs-gray-400">{order.id}</td>
-                  <td className="px-6 py-3.5 font-medium text-pbs-gray-900 dark:text-white max-w-[180px] truncate">{order.product}</td>
-                  <td className="px-6 py-3.5 text-pbs-gray-500 dark:text-pbs-gray-400">{order.date}</td>
-                  <td className="px-6 py-3.5 font-semibold text-pbs-gray-900 dark:text-white">${order.total.toLocaleString()}</td>
-                  <td className="px-6 py-3.5"><StatusBadge status={order.status} /></td>
-                  <td className="px-6 py-3.5">
-                    <Link href={`/account/orders/${order.id}`} className="text-xs font-medium text-pbs-red hover:underline whitespace-nowrap">
-                      View →
-                    </Link>
-                  </td>
+        {recentOrders.length === 0 ? (
+          <div className="p-8 text-center text-sm text-pbs-gray-400">No orders yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-pbs-gray-100 dark:border-pbs-gray-800">
+                  {['Order', 'Product', 'Date', 'Total', 'Status', ''].map((h) => (
+                    <th key={h} className="px-6 py-3 text-left text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {recentOrders.map((order) => (
+                  <tr key={order._id.toString()} className="border-b border-pbs-gray-100 dark:border-pbs-gray-800 last:border-0 hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800/50 transition-colors">
+                    <td className="px-6 py-3.5 font-mono text-xs text-pbs-gray-500 dark:text-pbs-gray-400">{order.orderNumber}</td>
+                    <td className="px-6 py-3.5 font-medium text-pbs-gray-900 dark:text-white max-w-[180px] truncate">{order.items[0]?.name ?? '—'}</td>
+                    <td className="px-6 py-3.5 text-pbs-gray-500 dark:text-pbs-gray-400">{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-3.5 font-semibold text-pbs-gray-900 dark:text-white">${order.total.toLocaleString()}</td>
+                    <td className="px-6 py-3.5"><StatusBadge status={order.status as OrderStatus} /></td>
+                    <td className="px-6 py-3.5">
+                      <Link href={`/account/orders/${order.orderNumber}`} className="text-xs font-medium text-pbs-red hover:underline whitespace-nowrap">
+                        View →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Quick Links */}

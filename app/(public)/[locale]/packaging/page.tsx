@@ -1,10 +1,5 @@
 import {
   Package,
-  Coffee,
-  ShoppingBag,
-  Box,
-  UtensilsCrossed,
-  Sticker,
   Star,
   Truck,
   Users,
@@ -18,6 +13,18 @@ import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/Button';
+import { getVisibleCategories } from '@/lib/db/categories';
+import { getProductIcon } from '@/lib/utils/icons';
+
+// Accent gradient lookup for known slugs; new categories get the default
+const SLUG_GRADIENTS: Record<string, string> = {
+  cups: 'from-pbs-red to-pbs-red-dark',
+  bags: 'from-pbs-gray-900 to-pbs-gray-700',
+  boxes: 'from-pbs-gold-dark to-pbs-gold',
+  'food-containers': 'from-pbs-red-light to-pbs-red',
+  labels: 'from-pbs-gray-800 to-pbs-gray-600',
+};
+const DEFAULT_GRADIENT = 'from-pbs-red to-pbs-red-dark';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -27,49 +34,31 @@ export default async function PackagingPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <PackagingContent />;
+  const categories = await getVisibleCategories();
+
+  const categoryCards = categories.map((c) => ({
+    id: c._id.toString(),
+    name: locale === 'es' && c.nameEs ? c.nameEs : c.name,
+    description: locale === 'es' && c.descriptionEs ? c.descriptionEs : (c.description ?? ''),
+    slug: c.slug,
+    iconName: c.iconName,
+    accent: SLUG_GRADIENTS[c.slug] ?? DEFAULT_GRADIENT,
+  }));
+
+  return <PackagingContent categoryCards={categoryCards} />;
 }
 
-function PackagingContent() {
-  const t = useTranslations('Home');
+type CategoryCard = {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  iconName: string;
+  accent: string;
+};
 
-  const productCategories = [
-    {
-      nameKey: 'cupsCategoryName' as const,
-      descKey: 'cupsCategoryDesc' as const,
-      icon: Coffee,
-      href: '/products?category=cups' as const,
-      accent: 'from-pbs-red to-pbs-red-dark',
-    },
-    {
-      nameKey: 'bagsCategoryName' as const,
-      descKey: 'bagsCategoryDesc' as const,
-      icon: ShoppingBag,
-      href: '/products?category=bags' as const,
-      accent: 'from-pbs-gray-900 to-pbs-gray-700',
-    },
-    {
-      nameKey: 'boxesCategoryName' as const,
-      descKey: 'boxesCategoryDesc' as const,
-      icon: Box,
-      href: '/products?category=boxes' as const,
-      accent: 'from-pbs-gold-dark to-pbs-gold',
-    },
-    {
-      nameKey: 'containersCategoryName' as const,
-      descKey: 'containersCategoryDesc' as const,
-      icon: UtensilsCrossed,
-      href: '/products?category=food-containers' as const,
-      accent: 'from-pbs-red-light to-pbs-red',
-    },
-    {
-      nameKey: 'labelsCategoryName' as const,
-      descKey: 'labelsCategoryDesc' as const,
-      icon: Sticker,
-      href: '/products?category=labels' as const,
-      accent: 'from-pbs-gray-800 to-pbs-gray-600',
-    },
-  ];
+function PackagingContent({ categoryCards }: { categoryCards: CategoryCard[] }) {
+  const t = useTranslations('Home');
 
   const valueProps = [
     {
@@ -103,7 +92,6 @@ function PackagingContent() {
         {/*  HERO CARD                                                       */}
         {/* ================================================================ */}
         <div className="col-span-1 md:col-span-2 md:row-span-2 lg:col-span-4 lg:row-span-2 bg-gradient-to-br from-pbs-red via-pbs-red-dark to-pbs-black rounded-3xl p-8 sm:p-10 lg:p-12 text-white flex flex-col justify-between shadow-lg hover:shadow-2xl transition-shadow duration-500 relative overflow-hidden group min-h-[360px] lg:min-h-[440px]">
-          {/* Background decorative elements */}
           <div className="absolute top-0 right-0 opacity-[0.07] transform translate-x-16 -translate-y-16 group-hover:scale-110 transition-transform duration-700" aria-hidden="true">
             <Package className="h-72 w-72 lg:h-96 lg:w-96" strokeWidth={1} />
           </div>
@@ -148,7 +136,6 @@ function PackagingContent() {
         {/*  STATS / TRUST CARD                                              */}
         {/* ================================================================ */}
         <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white dark:bg-pbs-gray-900 rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-pbs-gray-100 dark:border-pbs-gray-800 flex flex-col justify-between relative overflow-hidden min-h-[200px]">
-          {/* Decorative background */}
           <div className="absolute bottom-0 right-0 opacity-5" aria-hidden="true">
             <Star className="h-32 w-32" strokeWidth={1} />
           </div>
@@ -208,20 +195,20 @@ function PackagingContent() {
         </div>
 
         {/* ================================================================ */}
-        {/*  PRODUCT CATEGORY CARDS                                          */}
+        {/*  PRODUCT CATEGORY CARDS (dynamic from DB)                        */}
         {/* ================================================================ */}
-        {productCategories.map((category) => {
-          const Icon = category.icon;
+        {categoryCards.map((cat) => {
+          const Icon = getProductIcon(cat.iconName);
           return (
             <Link
-              key={category.nameKey}
-              href={category.href}
+              key={cat.id}
+              href={`/products?category=${cat.slug}` as any}
               className="col-span-1 md:col-span-1 lg:col-span-2 group"
             >
               <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-pbs-gray-100 dark:border-pbs-gray-800 h-full flex flex-col justify-between min-h-[180px] relative overflow-hidden hover:-translate-y-1">
                 {/* Gradient accent on hover */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${category.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl`}
+                  className={`absolute inset-0 bg-gradient-to-br ${cat.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl`}
                   aria-hidden="true"
                 />
 
@@ -232,10 +219,10 @@ function PackagingContent() {
                   </div>
 
                   <h3 className="text-lg font-bold text-pbs-gray-900 dark:text-white group-hover:text-white transition-colors duration-300">
-                    {t(category.nameKey)}
+                    {cat.name}
                   </h3>
                   <p className="text-sm text-pbs-gray-500 dark:text-pbs-gray-400 group-hover:text-white/80 mt-1.5 transition-colors duration-300">
-                    {t(category.descKey)}
+                    {cat.description}
                   </p>
                 </div>
 
