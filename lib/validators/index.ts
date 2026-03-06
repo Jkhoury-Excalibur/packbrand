@@ -145,6 +145,18 @@ export const inquirySchema = z.object({
 
 export type InquiryInput = z.infer<typeof inquirySchema>;
 
+// ── Staff ──
+
+export const staffSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().min(1),
+  role: z.string().min(1),
+  status: z.enum(['Active', 'Inactive']).default('Active'),
+});
+
+export type StaffInput = z.infer<typeof staffSchema>;
+
 // ── Settings ──
 
 export const settingsSchema = z.object({
