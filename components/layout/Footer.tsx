@@ -1,6 +1,6 @@
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { Package, Instagram, Phone, Mail, MapPin } from 'lucide-react';
+import { Package, Instagram, Phone, Mail } from 'lucide-react';
 
 export function Footer() {
   const t = useTranslations('Footer');
@@ -8,17 +8,15 @@ export function Footer() {
 
   const quickLinks = [
     { href: '/' as const, label: t('home') },
-    { href: '/packaging' as const, label: t('packaging') },
     { href: '/about' as const, label: t('aboutUs') },
     { href: '/contact' as const, label: t('contact') },
   ];
 
-  const productLinks = [
-    { href: '/products?category=cups' as const, label: t('customCups') },
-    { href: '/products?category=bags' as const, label: t('brandedBags') },
-    { href: '/products?category=boxes' as const, label: t('packagingBoxes') },
-    { href: '/products?category=food-containers' as const, label: t('foodContainers') },
-    { href: '/products?category=labels' as const, label: t('labelsStickers') },
+  const solutionLinks = [
+    { href: '/packaging' as const, label: 'Pack Brand Packaging' },
+    { href: '/direct' as const, label: 'Pack Brand Direct' },
+    { href: '/growth' as const, label: 'Pack Brand Growth' },
+    { href: '/voice' as const, label: 'Pack Brand Voice' },
   ];
 
   return (
@@ -70,13 +68,13 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Products */}
+          {/* Column 3: Solutions */}
           <div>
             <h3 className="text-xs font-bold text-pbs-gray-100 uppercase tracking-wider mb-4">
-              {t('productsTitle')}
+              Solutions
             </h3>
             <ul className="space-y-2.5">
-              {productLinks.map((link) => (
+              {solutionLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -112,12 +110,6 @@ export function Footer() {
                   <Mail className="h-4 w-4 mt-0.5 shrink-0" />
                   <span>info@packbrandsolutions.com</span>
                 </a>
-              </li>
-              <li>
-                <div className="flex items-start gap-2.5 text-sm text-pbs-gray-400">
-                  <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                  <span>22 Ward Street, Hackensack, NJ 07601</span>
-                </div>
               </li>
             </ul>
 

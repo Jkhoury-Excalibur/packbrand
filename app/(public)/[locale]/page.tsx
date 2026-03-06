@@ -20,7 +20,7 @@ function HomeContent() {
 
   const platformCards = [
     {
-      label: 'SOLUTIONS',
+      label: 'PACKAGING',
       headingKey: 'packagesTagline' as const,
       detailKey: 'packagesDesc' as const,
       icon: Package,
