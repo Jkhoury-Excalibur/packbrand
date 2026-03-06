@@ -78,3 +78,16 @@ export async function deleteProduct(id: string) {
     { $set: { isActive: false, updatedAt: new Date() } }
   );
 }
+
+export async function reorderProducts(orderedIds: string[]) {
+  const c = await col();
+  const ops = orderedIds.map((id, i) => ({
+    updateOne: {
+      filter: { _id: new ObjectId(id) },
+      update: { $set: { sortOrder: i, updatedAt: new Date() } },
+    },
+  }));
+  if (ops.length > 0) {
+    return c.bulkWrite(ops);
+  }
+}

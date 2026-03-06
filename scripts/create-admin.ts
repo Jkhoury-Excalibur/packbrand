@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 const uri = process.env.MONGODB_URI!;
 const dbName = process.env.MONGODB_DATABASE!;
@@ -16,16 +16,14 @@ async function main() {
   const password = 'Jhood56!';
   const hashedPassword = await hashPassword(password);
 
-  // Update or fix the account password
   const user = await db.collection('user').findOne({ email });
   if (!user) {
     console.log('User not found — creating...');
-    const { randomBytes } = await import('crypto');
-    const userId = randomBytes(16).toString('hex');
     const now = new Date();
+    const userId = new ObjectId();
 
     await db.collection('user').insertOne({
-      id: userId,
+      _id: userId,
       name: 'J Khoury',
       email,
       emailVerified: true,
@@ -35,9 +33,9 @@ async function main() {
     });
 
     await db.collection('account').insertOne({
-      id: randomBytes(16).toString('hex'),
-      userId,
-      accountId: userId,
+      _id: new ObjectId(),
+      userId: userId,
+      accountId: userId.toHexString(),
       providerId: 'credential',
       password: hashedPassword,
       createdAt: now,
@@ -46,8 +44,7 @@ async function main() {
 
     console.log('Admin account created.');
   } else {
-    // Fix existing account password
-    const userId = user.id;
+    const userId = user._id;
     await db.collection('user').updateOne(
       { email },
       { $set: { role: 'admin', emailVerified: true } }
@@ -56,7 +53,7 @@ async function main() {
       { userId, providerId: 'credential' },
       { $set: { password: hashedPassword } }
     );
-    console.log('Admin account password updated with correct hash.');
+    console.log('Admin account password updated.');
   }
 
   await client.close();

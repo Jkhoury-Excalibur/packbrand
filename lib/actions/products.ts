@@ -1,6 +1,6 @@
 'use server';
 
-import { createProduct as dbCreateProduct, updateProduct as dbUpdateProduct, deleteProduct as dbDeleteProduct } from '../db/products';
+import { createProduct as dbCreateProduct, updateProduct as dbUpdateProduct, deleteProduct as dbDeleteProduct, reorderProducts as dbReorderProducts } from '../db/products';
 import { productSchema } from '../validators';
 import { requireAdmin } from '../auth-helpers';
 
@@ -31,5 +31,11 @@ export async function updateProductAction(productId: string, formData: unknown) 
 export async function deleteProductAction(productId: string) {
   await requireAdmin();
   await dbDeleteProduct(productId);
+  return { success: true };
+}
+
+export async function reorderProductsAction(orderedIds: string[]) {
+  await requireAdmin();
+  await dbReorderProducts(orderedIds);
   return { success: true };
 }
