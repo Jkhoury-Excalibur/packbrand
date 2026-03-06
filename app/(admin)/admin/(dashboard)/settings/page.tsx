@@ -13,6 +13,9 @@ export default async function AdminSettingsPage() {
         storeAddress: settings.storeAddress,
         currency: settings.currency,
         timezone: settings.timezone,
+        taxRate: settings.taxRate ?? 0,
+        shippingRate: settings.shippingRate ?? 49.99,
+        freeShippingThreshold: settings.freeShippingThreshold ?? 500,
         notifications: settings.notifications,
       }}
     />

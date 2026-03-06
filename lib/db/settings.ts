@@ -20,6 +20,9 @@ const DEFAULT_SETTINGS: DbSettings = {
   storeAddress: '123 Main St, Hackensack, NJ 07601',
   currency: 'USD',
   timezone: 'America/New_York',
+  taxRate: 0,
+  shippingRate: 49.99,
+  freeShippingThreshold: 500,
   notifications: {
     newOrders: true,
     lowStock: true,

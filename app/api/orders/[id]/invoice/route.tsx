@@ -21,9 +21,10 @@ export async function GET(
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
-  // Customers can only download their own invoices; admins can download any
+  // Customers can only download their own invoices; admins can download any.
+  // Guest orders (no customerId) are only accessible to admins.
   const user = session.user as { id: string; role?: string };
-  if (user.role !== 'admin' && order.customerId && order.customerId !== user.id) {
+  if (user.role !== 'admin' && (!order.customerId || order.customerId !== user.id)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -45,6 +46,7 @@ export async function GET(
     items: order.items,
     subtotal: order.subtotal,
     shipping: order.shipping,
+    tax: order.tax ?? 0,
     total: order.total,
   };
 

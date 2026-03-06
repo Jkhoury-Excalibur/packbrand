@@ -195,6 +195,7 @@ export type InvoiceData = {
   }[];
   subtotal: number;
   shipping: number;
+  tax: number;
   total: number;
 };
 
@@ -270,6 +271,12 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
           <Text style={styles.summaryLabel}>Shipping</Text>
           <Text style={styles.summaryValue}>{data.shipping === 0 ? 'Free' : `$${data.shipping.toFixed(2)}`}</Text>
         </View>
+        {data.tax > 0 && (
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Tax</Text>
+            <Text style={styles.summaryValue}>${data.tax.toFixed(2)}</Text>
+          </View>
+        )}
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Total</Text>
           <Text style={styles.totalValue}>${data.total.toLocaleString()}</Text>

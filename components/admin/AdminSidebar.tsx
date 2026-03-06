@@ -11,6 +11,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
@@ -18,6 +19,7 @@ const navItems = [
   { href: '/admin/dashboard', label: 'Overview',   icon: LayoutDashboard },
   { href: '/admin/orders',    label: 'Orders',     icon: ShoppingCart     },
   { href: '/admin/users',     label: 'Customers',  icon: Users            },
+  { href: '/admin/reviews',   label: 'Reviews',    icon: Star             },
   { href: '/admin/staff',     label: 'Staff',      icon: UserCheck        },
   { href: '/admin/products',  label: 'Products',   icon: Package          },
   { href: '/admin/analytics', label: 'Analytics',  icon: BarChart3        },

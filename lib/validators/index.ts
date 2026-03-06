@@ -26,7 +26,10 @@ export const pricingTierSchema = z.object({
   minQty: z.number().int().positive(),
   maxQty: z.number().int().positive().optional(),
   unitPrice: z.number().positive(),
-});
+}).refine(
+  (t) => t.maxQty === undefined || t.minQty <= t.maxQty,
+  { message: 'maxQty must be >= minQty' }
+);
 
 export const productSchema = z.object({
   categoryId: z.string().min(1),
@@ -151,6 +154,9 @@ export const settingsSchema = z.object({
   storeAddress: z.string().min(1),
   currency: z.string().default('USD'),
   timezone: z.string().default('America/New_York'),
+  taxRate: z.number().min(0).max(1).default(0),
+  shippingRate: z.number().min(0).default(49.99),
+  freeShippingThreshold: z.number().min(0).default(500),
   notifications: z.object({
     newOrders: z.boolean().default(true),
     lowStock: z.boolean().default(true),

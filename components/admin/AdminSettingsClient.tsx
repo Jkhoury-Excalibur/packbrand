@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, Check, Bell, Globe, Palette, Store } from 'lucide-react';
+import { Save, Check, Bell, Globe, Palette, Store, Truck } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/Button';
 import { updateSettingsAction } from '@/lib/actions/settings';
@@ -19,6 +19,9 @@ type SettingsData = {
   storeAddress: string;
   currency: string;
   timezone: string;
+  taxRate: number;
+  shippingRate: number;
+  freeShippingThreshold: number;
   notifications: {
     newOrders: boolean;
     lowStock: boolean;
@@ -36,6 +39,9 @@ export function AdminSettingsClient({ settings }: { settings: SettingsData }) {
   const [storeAddress, setStoreAddress] = useState(settings.storeAddress);
   const [currency, setCurrency] = useState(settings.currency);
   const [timezone, setTimezone] = useState(settings.timezone);
+  const [taxRatePct, setTaxRatePct] = useState(String(Math.round(settings.taxRate * 100 * 100) / 100));
+  const [shippingRate, setShippingRate] = useState(String(settings.shippingRate));
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState(String(settings.freeShippingThreshold));
   const [orderNotif, setOrderNotif] = useState(settings.notifications.newOrders);
   const [lowStockNotif, setLowStockNotif] = useState(settings.notifications.lowStock);
   const [newUserNotif, setNewUserNotif] = useState(settings.notifications.newUsers);
@@ -50,6 +56,9 @@ export function AdminSettingsClient({ settings }: { settings: SettingsData }) {
       storeAddress,
       currency,
       timezone,
+      taxRate: Math.min(1, Math.max(0, parseFloat(taxRatePct) || 0) / 100),
+      shippingRate: Math.max(0, parseFloat(shippingRate) || 0),
+      freeShippingThreshold: Math.max(0, parseFloat(freeShippingThreshold) || 0),
       notifications: {
         newOrders: orderNotif,
         lowStock: lowStockNotif,
@@ -127,6 +136,61 @@ export function AdminSettingsClient({ settings }: { settings: SettingsData }) {
                 <option value="America/Denver">Mountain Time (MT)</option>
                 <option value="America/Los_Angeles">Pacific Time (PT)</option>
               </select>
+            </div>
+            <div>
+              <label className={LABEL_CLS}>Tax Rate (%)</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={taxRatePct}
+                onChange={(e) => setTaxRatePct(e.target.value)}
+                placeholder="0"
+                className={INPUT_CLS}
+              />
+              <p className="mt-1 text-xs text-pbs-gray-400">Enter 0 for no tax. Example: 8.875 for 8.875%.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Shipping */}
+        <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-9 w-9 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+              <Truck className="h-4 w-4 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white">Shipping</h2>
+              <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400">Flat rate and free shipping threshold</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className={LABEL_CLS}>Flat Shipping Rate ($)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={shippingRate}
+                onChange={(e) => setShippingRate(e.target.value)}
+                placeholder="49.99"
+                className={INPUT_CLS}
+              />
+              <p className="mt-1 text-xs text-pbs-gray-400">Charged when order is below the free shipping threshold.</p>
+            </div>
+            <div>
+              <label className={LABEL_CLS}>Free Shipping Threshold ($)</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={freeShippingThreshold}
+                onChange={(e) => setFreeShippingThreshold(e.target.value)}
+                placeholder="500"
+                className={INPUT_CLS}
+              />
+              <p className="mt-1 text-xs text-pbs-gray-400">Orders at or above this amount ship free. Set to 0 to always offer free shipping.</p>
             </div>
           </div>
         </div>

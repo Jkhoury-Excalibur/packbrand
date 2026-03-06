@@ -8,13 +8,19 @@ import { ShoppingCart, ArrowRight, Package, Truck, Users, Check } from 'lucide-r
 import { cn } from '@/lib/utils/cn';
 import { useCartStore } from '@/lib/store/cart';
 
-const QUANTITY_OPTIONS = [
+const DEFAULT_QUANTITY_OPTIONS = [
   { label: '1–50 units',    qty: 25  },
   { label: '51–100 units',  qty: 75  },
   { label: '101–250 units', qty: 175 },
   { label: '251–500 units', qty: 375 },
   { label: '500+ units',    qty: 500 },
 ];
+
+type PricingTier = {
+  minQty: number;
+  maxQty?: number;
+  unitPrice: number;
+};
 
 // Only serializable fields — no LucideIcon, no methods
 type ProductOptionsProps = {
@@ -24,17 +30,39 @@ type ProductOptionsProps = {
   categoryName: string;
   sizes?: string[];
   basePrice: number;
+  pricingTiers?: PricingTier[];
 };
 
-export function ProductOptions({ id, name, categoryId, categoryName, sizes, basePrice }: ProductOptionsProps) {
+function buildTierOptions(tiers: PricingTier[]) {
+  return tiers.map((tier) => {
+    const label = tier.maxQty
+      ? `${tier.minQty.toLocaleString()}–${tier.maxQty.toLocaleString()} units`
+      : `${tier.minQty.toLocaleString()}+ units`;
+    // Representative qty: midpoint of range, or minQty for open-ended tiers
+    const qty = tier.maxQty
+      ? Math.round((tier.minQty + tier.maxQty) / 2)
+      : tier.minQty;
+    return { label, qty, unitPrice: tier.unitPrice };
+  });
+}
+
+export function ProductOptions({ id, name, categoryId, categoryName, sizes, basePrice, pricingTiers }: ProductOptionsProps) {
   const t = useTranslations('ProductDetail');
+
+  const hasTiers = pricingTiers && pricingTiers.length > 0;
+  const quantityOptions = hasTiers
+    ? buildTierOptions(pricingTiers)
+    : DEFAULT_QUANTITY_OPTIONS.map((o) => ({ ...o, unitPrice: basePrice }));
+
   const [selectedSize, setSelectedSize] = useState(sizes?.[0] ?? '');
-  const [selectedQty, setSelectedQty] = useState(QUANTITY_OPTIONS[0]);
+  const [selectedQty, setSelectedQty] = useState(quantityOptions[0]);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
+  const unitPrice = selectedQty.unitPrice;
+  const lineTotal = unitPrice * selectedQty.qty;
+
   const handleAddToCart = () => {
-    const lineTotal = basePrice * selectedQty.qty;
     addItem({
       id: `${id}-${selectedSize || 'default'}`,
       productId: id,
@@ -44,7 +72,7 @@ export function ProductOptions({ id, name, categoryId, categoryName, sizes, base
       size: selectedSize || 'Standard',
       qtyLabel: selectedQty.label,
       qty: selectedQty.qty,
-      unitPrice: basePrice,
+      unitPrice,
       lineTotal,
     });
     setAdded(true);
@@ -92,12 +120,12 @@ export function ProductOptions({ id, name, categoryId, categoryName, sizes, base
         <select
           value={selectedQty.label}
           onChange={(e) => {
-            const found = QUANTITY_OPTIONS.find((o) => o.label === e.target.value);
+            const found = quantityOptions.find((o) => o.label === e.target.value);
             if (found) setSelectedQty(found);
           }}
           className="w-full rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 px-4 py-3 text-sm text-pbs-gray-900 dark:text-white focus:outline-none focus:border-pbs-red transition-colors appearance-none cursor-pointer"
         >
-          {QUANTITY_OPTIONS.map((opt) => (
+          {quantityOptions.map((opt) => (
             <option key={opt.label} value={opt.label}>{opt.label}</option>
           ))}
         </select>
@@ -108,11 +136,11 @@ export function ProductOptions({ id, name, categoryId, categoryName, sizes, base
         <div>
           <p className="text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest">Est. Total</p>
           <p className="text-2xl font-bold text-pbs-gray-900 dark:text-white mt-0.5">
-            ${(basePrice * selectedQty.qty).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${lineTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
         <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 text-right">
-          ${basePrice.toFixed(2)}<br />per unit
+          ${unitPrice.toFixed(2)}<br />per unit
         </p>
       </div>
 

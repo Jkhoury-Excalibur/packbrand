@@ -11,9 +11,9 @@ export async function updateProfile(formData: {
   const session = await requireAuth();
   const db = await getDb();
 
-  // Better Auth stores user _id as string in MongoDB
+  // Better Auth stores users with a string `id` field in MongoDB
   await db.collection('user').updateOne(
-    { _id: session.user.id as unknown as import('mongodb').ObjectId },
+    { id: session.user.id },
     {
       $set: {
         name: formData.name,

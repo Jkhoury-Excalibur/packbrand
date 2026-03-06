@@ -26,7 +26,7 @@ export async function getActiveProducts() {
 }
 
 export async function getProductsByCategory(categoryId: string) {
-  return getProducts({ categoryId });
+  return getProducts({ categoryId, isActive: true });
 }
 
 export async function getFeaturedProducts() {
@@ -37,6 +37,11 @@ export async function getFeaturedProducts() {
 export async function getProductById(id: string) {
   const c = await col();
   return c.findOne({ _id: new ObjectId(id) });
+}
+
+export async function getActiveProductById(id: string) {
+  const c = await col();
+  return c.findOne({ _id: new ObjectId(id), isActive: true });
 }
 
 export async function getProductCountsByCategory(): Promise<Record<string, number>> {

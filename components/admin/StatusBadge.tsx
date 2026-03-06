@@ -7,7 +7,9 @@ type Status =
   | 'Delivered'
   | 'Cancelled'
   | 'Active'
-  | 'Inactive';
+  | 'Inactive'
+  | 'Approved'
+  | 'Rejected';
 
 const styles: Record<Status, string> = {
   Pending:    'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
@@ -17,6 +19,8 @@ const styles: Record<Status, string> = {
   Cancelled:  'bg-pbs-gray-100 text-pbs-gray-500 dark:bg-pbs-gray-800 dark:text-pbs-gray-400',
   Active:     'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
   Inactive:   'bg-pbs-gray-100 text-pbs-gray-500 dark:bg-pbs-gray-800 dark:text-pbs-gray-400',
+  Approved:   'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+  Rejected:   'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
 export function StatusBadge({ status }: { status: Status }) {

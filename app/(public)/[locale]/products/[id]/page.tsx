@@ -3,7 +3,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Check, ChevronRight } from 'lucide-react';
-import { getProductById, getActiveProducts } from '@/lib/db/products';
+import { getActiveProductById, getActiveProducts } from '@/lib/db/products';
 import { getCategoryById } from '@/lib/db/categories';
 import { getApprovedReviewsByProduct } from '@/lib/db/reviews';
 import { getProductIcon } from '@/lib/utils/icons';
@@ -18,8 +18,8 @@ export default async function ProductDetailPage({ params }: Props) {
   const { locale, id } = await params;
   setRequestLocale(locale);
 
-  const product = await getProductById(id);
-  if (!product || !product.isActive) notFound();
+  const product = await getActiveProductById(id);
+  if (!product) notFound();
 
   // Fetch category for breadcrumb and related products
   const category = await getCategoryById(product.categoryId);
@@ -192,6 +192,7 @@ function ProductDetailContent({ product, pid, Icon, related, categoryName, categ
             categoryName={categoryName}
             sizes={product.sizes}
             basePrice={product.basePrice}
+            pricingTiers={product.pricingTiers}
           />
         </div>
       </div>

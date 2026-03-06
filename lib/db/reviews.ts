@@ -21,6 +21,11 @@ async function col() {
   return db.collection<DbReview>('reviews');
 }
 
+export async function getAllReviews() {
+  const c = await col();
+  return c.find().sort({ createdAt: -1 }).toArray();
+}
+
 export async function getApprovedReviewsByProduct(productId: string) {
   const c = await col();
   return c.find({ productId, status: 'approved' }).sort({ createdAt: -1 }).toArray();

@@ -1,4 +1,4 @@
-import { ShoppingCart, DollarSign, Users, Package, ArrowRight, Plus, Download, FileText } from 'lucide-react';
+import { ShoppingCart, DollarSign, Users, Package, ArrowRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { StatCard } from '@/components/admin/StatCard';
@@ -110,12 +110,6 @@ export default async function DashboardPage() {
                     <Package className="h-4 w-4" /> New Product
                   </Button>
                 </Link>
-                <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-pbs-gray-600 dark:text-pbs-gray-400">
-                  <Download className="h-4 w-4" /> Export Report
-                </Button>
-                <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-pbs-gray-600 dark:text-pbs-gray-400">
-                  <FileText className="h-4 w-4" /> View Invoices
-                </Button>
               </div>
             </div>
 
