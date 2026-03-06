@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
-import type { OrderStatus } from '@/lib/data/mock-orders';
+import type { OrderStatus } from '@/lib/types/order';
 
 const STEPS: { key: OrderStatus; label: string; sub: string }[] = [
   { key: 'Pending',    label: 'Order Placed',  sub: 'We received your order'    },

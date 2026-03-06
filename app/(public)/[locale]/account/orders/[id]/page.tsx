@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/admin/StatusBadge';
 import { OrderTimeline } from '@/components/account/OrderTimeline';
 import { requireAuth } from '@/lib/auth-helpers';
 import { getOrderById } from '@/lib/db/orders';
-import type { OrderStatus } from '@/lib/data/mock-orders';
+import type { OrderStatus } from '@/lib/types/order';
 
 type Props = { params: Promise<{ id: string }> };
 

@@ -4,7 +4,7 @@ import { StatusBadge } from '@/components/admin/StatusBadge';
 import { requireAuth } from '@/lib/auth-helpers';
 import { getUserOrders } from '@/lib/db/orders';
 import { getUserAddresses } from '@/lib/db/addresses';
-import type { OrderStatus } from '@/lib/data/mock-orders';
+import type { OrderStatus } from '@/lib/types/order';
 
 export default async function AccountOverviewPage() {
   const session = await requireAuth();

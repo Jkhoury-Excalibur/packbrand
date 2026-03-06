@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation';
 import { Check, ChevronRight } from 'lucide-react';
 import { getProductById, getActiveProducts } from '@/lib/db/products';
 import { getCategoryById } from '@/lib/db/categories';
+import { getApprovedReviewsByProduct } from '@/lib/db/reviews';
 import { getProductIcon } from '@/lib/utils/icons';
 import { ProductOptions } from '@/components/shared/ProductOptions';
 import { ProductReviews } from '@/components/shared/ProductReviews';
@@ -28,12 +29,25 @@ export default async function ProductDetailPage({ params }: Props) {
   const categorySlug = category?.slug ?? '';
   const categoryIconName = category?.iconName ?? 'Package';
 
-  const allProducts = await getActiveProducts();
+  const pid = product._id.toString();
+
+  const [allProducts, dbReviews] = await Promise.all([
+    getActiveProducts(),
+    getApprovedReviewsByProduct(pid),
+  ]);
   const related = allProducts
     .filter((p) => p.categoryId === product.categoryId && p._id.toString() !== product._id.toString())
     .slice(0, 3);
 
-  const pid = product._id.toString();
+  const reviews = dbReviews.map((r) => ({
+    id: r._id.toString(),
+    author: r.author,
+    company: r.company,
+    rating: r.rating,
+    date: r.createdAt.toISOString().slice(0, 10),
+    text: r.text,
+    helpful: r.helpful,
+  }));
   const iconName = product.iconName || categoryIconName;
   const Icon = getProductIcon(iconName);
 
@@ -62,11 +76,12 @@ export default async function ProductDetailPage({ params }: Props) {
       localizedName={localizedName}
       localizedShortDesc={localizedShortDesc}
       localizedDesc={localizedDesc}
+      reviews={reviews}
     />
   );
 }
 
-function ProductDetailContent({ product, pid, Icon, related, categoryName, categorySlug, categoryId, categoryIconName, localizedName, localizedShortDesc, localizedDesc }: {
+function ProductDetailContent({ product, pid, Icon, related, categoryName, categorySlug, categoryId, categoryIconName, localizedName, localizedShortDesc, localizedDesc, reviews }: {
   product: any;
   pid: string;
   Icon: any;
@@ -78,6 +93,7 @@ function ProductDetailContent({ product, pid, Icon, related, categoryName, categ
   localizedName: string;
   localizedShortDesc: string;
   localizedDesc: string;
+  reviews: { id: string; author: string; company: string; rating: number; date: string; text: string; helpful: number }[];
 }) {
   const t = useTranslations('ProductDetail');
 
@@ -210,7 +226,7 @@ function ProductDetailContent({ product, pid, Icon, related, categoryName, categ
       </div>
 
       {/* ── REVIEWS ── */}
-      <ProductReviews category={categorySlug} />
+      <ProductReviews productId={pid} reviews={reviews} />
 
       {/* ── RELATED PRODUCTS ── */}
       {related.length > 0 && (

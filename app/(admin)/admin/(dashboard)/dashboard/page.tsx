@@ -6,7 +6,7 @@ import { StatusBadge } from '@/components/admin/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { getOrders, getOrderStats } from '@/lib/db/orders';
 import { getActiveProducts } from '@/lib/db/products';
-import type { OrderStatus } from '@/lib/data/mock-orders';
+import type { OrderStatus } from '@/lib/types/order';
 
 export default async function DashboardPage() {
   const [orders, stats, products] = await Promise.all([

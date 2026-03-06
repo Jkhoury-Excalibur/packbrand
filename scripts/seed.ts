@@ -159,7 +159,7 @@ async function seed() {
 
   // Clear existing data
   console.log('Clearing existing collections...');
-  const collections = ['categories', 'products', 'orders', 'staff', 'settings'];
+  const collections = ['categories', 'products', 'orders', 'staff', 'settings', 'reviews'];
   for (const name of collections) {
     try {
       await db.collection(name).drop();
@@ -278,6 +278,40 @@ async function seed() {
   await db.collection('settings').insertOne(DEFAULT_SETTINGS);
   console.log('  ✓ settings');
 
+  // Seed reviews
+  console.log('Seeding reviews...');
+  const REVIEWS = [
+    { productName: 'Custom Printed Coffee Cups', author: 'Maria L.',  company: 'Go Picadera',      rating: 5, text: 'Amazing quality! Our customers love seeing our logo on every cup. The colors came out perfect and delivery was fast.', helpful: 8, date: new Date('2026-02-15') },
+    { productName: 'Cold Beverage Cups',         author: 'Nina C.',   company: 'Boba House',        rating: 5, text: 'We ordered 1,000 cold cups and they look incredible. Great print quality and the minimum order was very reasonable.', helpful: 5, date: new Date('2026-01-28') },
+    { productName: 'Cold Beverage Cups',         author: 'Aisha J.',  company: "Aisha's Kitchen",   rating: 4, text: 'Good quality cups. Would have liked more size options but overall very happy with the branding.', helpful: 3, date: new Date('2026-01-10') },
+    { productName: 'Kraft Paper Bags',           author: 'James R.',  company: 'Kimchi Smoke',      rating: 5, text: 'Perfect bags for our takeout orders. Sturdy kraft paper and the logo print is sharp. Customers always comment on how nice they look.', helpful: 6, date: new Date('2026-02-10') },
+    { productName: 'Flat Bottom Paper Bags',     author: 'Priya S.',  company: 'Spice Route',       rating: 4, text: 'Great quality bags at a fair price. The bilingual support made ordering so easy for our Spanish-speaking team.', helpful: 4, date: new Date('2026-01-20') },
+    { productName: 'Custom Pizza Boxes',         author: 'Carlos M.', company: 'Parriyas',          rating: 5, text: 'Best pizza boxes we have used. Strong enough for delivery and our branding looks professional.', helpful: 7, date: new Date('2026-02-01') },
+    { productName: 'Mailer & Gift Boxes',        author: 'David O.',  company: 'Slice & Dice',      rating: 5, text: 'Excellent quality and the custom sizes were perfect for our menu. Will definitely reorder.', helpful: 4, date: new Date('2026-01-15') },
+    { productName: 'Custom Food Bowls',          author: 'Sofia P.',  company: 'La Fortaleza',      rating: 5, text: 'These food bowls are perfect for our rice and grain bowls. The branding makes our delivery orders look premium.', helpful: 5, date: new Date('2026-02-05') },
+    { productName: 'Takeout Containers',         author: 'Luis T.',   company: 'El Sabor Latino',   rating: 4, text: 'Good containers, great price. The lids fit perfectly and nothing leaks. Our customers appreciate the branded packaging.', helpful: 3, date: new Date('2026-01-18') },
+    { productName: 'Custom Product Labels',      author: 'Ray N.',    company: 'Pho Sure',          rating: 5, text: 'These labels transformed our product packaging. The adhesive is strong and the print quality is excellent.', helpful: 6, date: new Date('2026-01-25') },
+    { productName: 'Roll Stickers',              author: 'Marco E.',  company: "Marco's Cafe",      rating: 5, text: 'Great roll stickers! Easy to apply and the colors match our brand perfectly. Pantone matching was spot on.', helpful: 4, date: new Date('2026-01-12') },
+  ];
+
+  const reviewDocs = REVIEWS.map((r) => {
+    const matchedProduct = productDocs.find((p) => p.name === r.productName);
+    return {
+      _id: new ObjectId(),
+      productId: matchedProduct?._id.toString() || '',
+      author: r.author,
+      company: r.company,
+      rating: r.rating,
+      text: r.text,
+      helpful: r.helpful,
+      status: 'approved' as const,
+      createdAt: r.date,
+      updatedAt: r.date,
+    };
+  });
+  await db.collection('reviews').insertMany(reviewDocs);
+  console.log(`  ✓ ${reviewDocs.length} reviews`);
+
   // Create indexes
   console.log('Creating indexes...');
   await db.collection('categories').createIndex({ slug: 1 }, { unique: true });
@@ -289,6 +323,8 @@ async function seed() {
   await db.collection('orders').createIndex({ customerId: 1 });
   await db.collection('orders').createIndex({ status: 1 });
   await db.collection('addresses').createIndex({ userId: 1 });
+  await db.collection('reviews').createIndex({ productId: 1, status: 1 });
+  await db.collection('reviews').createIndex({ createdAt: -1 });
   await db.collection('inquiries').createIndex({ type: 1 });
   await db.collection('inquiries').createIndex({ createdAt: -1 });
   console.log('  ✓ indexes');

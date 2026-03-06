@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { RotateCcw } from 'lucide-react';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { Button } from '@/components/ui/Button';
-import type { OrderStatus } from '@/lib/data/mock-orders';
+import type { OrderStatus } from '@/lib/types/order';
 import { cn } from '@/lib/utils/cn';
 
 type OrderRow = {

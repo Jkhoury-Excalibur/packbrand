@@ -10,7 +10,7 @@ import { StatusBadge } from '@/components/admin/StatusBadge';
 import { OrderTimeline } from '@/components/account/OrderTimeline';
 import { Button } from '@/components/ui/Button';
 import { updateOrderAction } from '@/lib/actions/orders';
-import type { OrderStatus } from '@/lib/data/mock-orders';
+import type { OrderStatus } from '@/lib/types/order';
 import { cn } from '@/lib/utils/cn';
 
 const STATUS_OPTIONS: OrderStatus[] = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
