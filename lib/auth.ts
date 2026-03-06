@@ -6,11 +6,17 @@ import { sendEmail } from './email';
 
 function createAuth(db: import('mongodb').Db, client: import('mongodb').MongoClient) {
   const baseURL = process.env.BETTER_AUTH_URL
+    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined)
     || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
     || 'http://localhost:3000';
 
   return betterAuth({
     baseURL,
+    trustedOrigins: [
+      baseURL,
+      ...(process.env.VERCEL_PROJECT_PRODUCTION_URL ? [`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`] : []),
+      ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+    ],
     database: mongodbAdapter(db, { client }),
     emailAndPassword: {
       enabled: true,
