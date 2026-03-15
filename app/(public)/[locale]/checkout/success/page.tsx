@@ -1,10 +1,14 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/lib/store/cart';
+import { getOrderPaymentStatus } from '@/lib/actions/orders';
 import { Link } from '@/i18n/navigation';
-import { CheckCircle, Package, Palette, Factory, Truck, ArrowRight, ShoppingBag } from 'lucide-react';
+import {
+  CheckCircle, Package, Palette, Factory, Truck,
+  ArrowRight, ShoppingBag, Loader2, XCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 const STEPS = [
@@ -14,15 +18,91 @@ const STEPS = [
   { icon: Truck,       label: 'Shipping',           desc: 'Delivered to your door' },
 ];
 
+type Status = 'loading' | 'paid' | 'pending' | 'failed' | 'refunded' | 'voided' | 'not_found';
+
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order') ?? '';
   const clearCart = useCartStore((s) => s.clearCart);
+  const [status, setStatus] = useState<Status>('loading');
 
+  const checkStatus = useCallback(async () => {
+    if (!orderNumber) { setStatus('not_found'); return; }
+    const result = await getOrderPaymentStatus(orderNumber);
+    setStatus(result.paymentStatus === 'not_found' ? 'not_found' : result.paymentStatus);
+  }, [orderNumber]);
+
+  // Initial check
+  useEffect(() => { checkStatus(); }, [checkStatus]);
+
+  // Poll every 3s while pending
   useEffect(() => {
-    clearCart();
-  }, [clearCart]);
+    if (status !== 'pending' && status !== 'loading') return;
+    const interval = setInterval(checkStatus, 3000);
+    return () => clearInterval(interval);
+  }, [status, checkStatus]);
 
+  // Clear cart once paid
+  useEffect(() => {
+    if (status === 'paid') clearCart();
+  }, [status, clearCart]);
+
+  // --- Loading ---
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8">
+        <Loader2 className="h-12 w-12 text-pbs-red animate-spin" />
+        <p className="text-pbs-gray-500 dark:text-pbs-gray-400">Checking payment status…</p>
+      </div>
+    );
+  }
+
+  // --- Pending (webhook hasn't processed yet) ---
+  if (status === 'pending') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8">
+        <Loader2 className="h-12 w-12 text-amber-500 animate-spin" />
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-pbs-gray-900 dark:text-white">Processing Payment…</h1>
+          <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-2">
+            We&apos;re confirming your payment. This usually takes a few seconds.
+          </p>
+          {orderNumber && (
+            <p className="text-sm text-pbs-gray-400 dark:text-pbs-gray-500 mt-2">
+              Order reference: <span className="font-mono font-bold">{orderNumber}</span>
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // --- Failed ---
+  if (status === 'failed' || status === 'not_found') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8">
+        <div className="h-16 w-16 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+          <XCircle className="h-9 w-9 text-red-600 dark:text-red-400" />
+        </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-pbs-gray-900 dark:text-white">Payment Failed</h1>
+          <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-2">
+            Your payment could not be processed. Please try again.
+          </p>
+          {orderNumber && (
+            <p className="text-sm text-pbs-gray-400 dark:text-pbs-gray-500 mt-1">
+              Order reference: <span className="font-mono font-bold">{orderNumber}</span>
+            </p>
+          )}
+        </div>
+        <Link href="/checkout">
+          <Button variant="primary" size="lg">Return to Checkout</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  // --- Paid (success) ---
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-8">
 

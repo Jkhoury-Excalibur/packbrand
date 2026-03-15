@@ -6,6 +6,13 @@ import { requireAdmin } from '../auth-helpers';
 import { sendEmail } from '../email';
 import { escapeHtml } from '../utils/escapeHtml';
 
+/** Public: check payment status by order number (no auth required). */
+export async function getOrderPaymentStatus(orderNumber: string) {
+  const order = await getOrderById(orderNumber);
+  if (!order) return { paymentStatus: 'not_found' as const };
+  return { paymentStatus: order.paymentStatus };
+}
+
 export async function updateOrderAction(orderId: string, formData: unknown) {
   await requireAdmin();
 
