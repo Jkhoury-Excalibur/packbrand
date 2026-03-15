@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -14,6 +14,7 @@ import {
   Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { authClient } from '@/lib/auth-client';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Overview',   icon: LayoutDashboard },
@@ -27,6 +28,12 @@ const navItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    router.push('/admin/login');
+  };
 
   return (
     <aside className="w-64 shrink-0 bg-pbs-black min-h-screen flex flex-col">
@@ -77,13 +84,13 @@ export function AdminSidebar() {
           <Settings className="h-4 w-4 shrink-0" />
           Settings
         </Link>
-        <Link
-          href="/admin/login"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-pbs-gray-400 hover:text-pbs-red hover:bg-pbs-gray-800 transition-colors"
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-pbs-gray-400 hover:text-pbs-red hover:bg-pbs-gray-800 transition-colors"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           Sign Out
-        </Link>
+        </button>
       </div>
     </aside>
   );

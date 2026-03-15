@@ -1,29 +1,32 @@
 'use client';
 
 import { Suspense, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useCartStore } from '@/lib/store/cart';
+import { useSearchParams } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/Button';
 
 function PaymentCompleteContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const clearCart = useCartStore((s) => s.clearCart);
   const orderNumber = searchParams.get('order') ?? '';
   const error = searchParams.get('error');
 
   useEffect(() => {
     if (!error && orderNumber) {
-      clearCart();
-      // Short delay to allow webhook to process before showing success page
+      const successUrl = `/en/checkout/success?order=${orderNumber}`;
+
+      // Break out of iframe — gateway redirects inside the iframe,
+      // so we need to navigate the parent window
       const timer = setTimeout(() => {
-        router.replace(`/checkout/success?order=${orderNumber}`);
-      }, 2000);
+        if (window.top && window.top !== window) {
+          window.top.location.href = successUrl;
+        } else {
+          window.location.href = successUrl;
+        }
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [error, orderNumber, clearCart, router]);
+  }, [error, orderNumber]);
 
   if (error) {
     return (

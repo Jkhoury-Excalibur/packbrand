@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, ShoppingCart, User, MapPin, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { authClient } from '@/lib/auth-client';
 
 const navItems = [
   { href: '/account',           label: 'Overview',    icon: LayoutDashboard, exact: true  },
@@ -14,9 +15,15 @@ const navItems = [
 
 export function AccountSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   // Strip locale prefix (/es/account → /account)
   const bare = pathname.replace(/^\/(en|es)/, '') || '/';
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    router.push('/login');
+  };
 
   return (
     <aside className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-4 h-fit lg:sticky lg:top-24">
@@ -56,13 +63,13 @@ export function AccountSidebar() {
 
       {/* Sign out */}
       <div className="mt-3 pt-3 border-t border-pbs-gray-100 dark:border-pbs-gray-800">
-        <Link
-          href="/login"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-pbs-gray-500 dark:text-pbs-gray-400 hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 hover:text-pbs-red transition-colors"
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-pbs-gray-500 dark:text-pbs-gray-400 hover:bg-pbs-gray-50 dark:hover:bg-pbs-gray-800 hover:text-pbs-red transition-colors"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           Sign Out
-        </Link>
+        </button>
       </div>
     </aside>
   );

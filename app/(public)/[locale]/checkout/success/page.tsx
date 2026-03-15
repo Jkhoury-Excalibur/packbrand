@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useCartStore } from '@/lib/store/cart';
 import { Link } from '@/i18n/navigation';
 import { CheckCircle, Package, Palette, Factory, Truck, ArrowRight, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +17,11 @@ const STEPS = [
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order') ?? '';
+  const clearCart = useCartStore((s) => s.clearCart);
+
+  useEffect(() => {
+    clearCart();
+  }, [clearCart]);
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-8">
