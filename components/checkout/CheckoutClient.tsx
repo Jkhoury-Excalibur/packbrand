@@ -196,7 +196,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
             <iframe
               src={iframeUrl}
               className="w-full border-0 rounded-2xl bg-white dark:bg-pbs-gray-900 overflow-hidden"
-              style={{ minHeight: '100vh' }}
+              style={{ minHeight: '750px' }}
               title="Payment Form"
               scrolling="no"
               sandbox="allow-scripts allow-forms allow-same-origin allow-top-navigation"
