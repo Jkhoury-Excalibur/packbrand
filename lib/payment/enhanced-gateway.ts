@@ -64,6 +64,8 @@ export async function initiatePayment(params: {
     });
 
     const data = await response.json();
+    console.log('[enhanced-gateway] PTK response status:', response.status);
+    console.log('[enhanced-gateway] PTK response body:', JSON.stringify(data, null, 2));
 
     if (data.success && data.data?.ptk) {
       return {

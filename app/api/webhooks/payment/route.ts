@@ -9,12 +9,18 @@ export async function POST(request: Request) {
     const url = new URL(request.url);
     const urlToken = url.searchParams.get('token') || '';
 
+    console.log('[webhook] ===== INCOMING WEBHOOK =====');
+    console.log('[webhook] URL:', request.url);
+    console.log('[webhook] Method:', request.method);
+
     // Parse payload — gateway may send JSON or form-encoded
     const contentType = request.headers.get('content-type') || '';
+    console.log('[webhook] Content-Type:', contentType);
     let payload: Record<string, unknown>;
 
     if (contentType.includes('application/x-www-form-urlencoded')) {
       const formData = await request.text();
+      console.log('[webhook] Raw form data:', formData);
       payload = Object.fromEntries(new URLSearchParams(formData));
       // Parse boolean string from form data
       if (typeof payload.TransactionResult === 'string') {
@@ -24,9 +30,14 @@ export async function POST(request: Request) {
       payload = await request.json();
     }
 
+    console.log('[webhook] Parsed payload:', JSON.stringify(payload, null, 2));
+
     // Extract ticketId from payload (gateway uses varying casing)
     const ticketId = (payload.ticketid || payload.TicketId || payload.ticket_id ||
       payload.Ticketid) as string | undefined;
+
+    console.log('[webhook] Extracted ticketId:', ticketId);
+    console.log('[webhook] All payload keys:', Object.keys(payload));
 
     if (!ticketId) {
       console.error('[webhook] Missing ticketid in payload:', Object.keys(payload));
@@ -40,6 +51,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, error: 'Order not found' });
     }
 
+    console.log('[webhook] Found order:', order.orderNumber, '| current paymentStatus:', order.paymentStatus);
+
     // Verify HMAC token
     if (urlToken && !verifyWebhookToken(ticketId, urlToken)) {
       console.error('[webhook] Invalid HMAC token for order:', order.orderNumber);
@@ -48,6 +61,7 @@ export async function POST(request: Request) {
 
     // Parse gateway response
     const result = parseWebhookPayload(payload);
+    console.log('[webhook] Parsed result:', JSON.stringify(result, null, 2));
 
     if (result.success) {
       // Idempotency: updateOrderPayment only updates if paymentStatus is still 'pending'

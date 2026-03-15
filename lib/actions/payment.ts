@@ -35,6 +35,15 @@ export async function createOrderAndInitiatePayment(formData: unknown) {
   const successUrl = `${baseUrl}/checkout/payment-complete?order=${order.orderNumber}`;
   const failureUrl = `${baseUrl}/checkout/payment-complete?order=${order.orderNumber}&error=failed`;
 
+  console.log('[payment] ===== INITIATING PAYMENT =====');
+  console.log('[payment] Order:', order.orderNumber);
+  console.log('[payment] TransactionId:', order.transactionId);
+  console.log('[payment] Amount:', order.total);
+  console.log('[payment] BaseUrl:', baseUrl);
+  console.log('[payment] WebhookUrl:', webhookUrl);
+  console.log('[payment] SuccessUrl:', successUrl);
+  console.log('[payment] FailureUrl:', failureUrl);
+
   const paymentResult = await initiatePayment({
     transactionId: order.transactionId,
     amount: order.total,
@@ -42,6 +51,8 @@ export async function createOrderAndInitiatePayment(formData: unknown) {
     successUrl,
     failureUrl,
   });
+
+  console.log('[payment] Gateway response:', JSON.stringify(paymentResult, null, 2));
 
   if (!paymentResult.success) {
     return { error: { payment: [paymentResult.error || 'Payment initialization failed'] } };
