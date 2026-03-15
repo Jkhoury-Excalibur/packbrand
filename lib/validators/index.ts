@@ -25,7 +25,7 @@ export const productSpecSchema = z.object({
 export const pricingTierSchema = z.object({
   minQty: z.number().int().positive(),
   maxQty: z.number().int().positive().optional(),
-  unitPrice: z.number().positive(),
+  unitPrice: z.number().nonnegative(),
 }).refine(
   (t) => t.maxQty === undefined || t.minQty <= t.maxQty,
   { message: 'maxQty must be >= minQty' }
@@ -44,7 +44,7 @@ export const productSchema = z.object({
   features: z.array(z.string()),
   sizes: z.array(z.string()).optional(),
   specs: z.array(productSpecSchema),
-  basePrice: z.number().positive(),
+  basePrice: z.number().nonnegative(),
   images: z.array(z.string()).default([]),
   pricingTiers: z.array(pricingTierSchema).default([]),
   sortOrder: z.number().int().default(0),
@@ -101,10 +101,19 @@ export const createOrderSchema = z.object({
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
+export const paymentStatusSchema = z.enum([
+  'pending',
+  'paid',
+  'failed',
+  'refunded',
+  'voided',
+]);
+
 export const updateOrderSchema = z.object({
   status: orderStatusSchema.optional(),
   trackingNumber: z.string().optional(),
   notes: z.string().optional(),
+  paymentStatus: paymentStatusSchema.optional(),
 });
 
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;

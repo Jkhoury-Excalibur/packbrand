@@ -3,19 +3,28 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import {
-  ChevronLeft, Truck, MapPin, User, Mail, Phone, Building2, StickyNote, Save, Check, Download,
+  ChevronLeft, Truck, MapPin, User, Mail, Phone, Building2, StickyNote, Save, Check, Download, CreditCard, Ban, RotateCcw,
 } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { OrderTimeline } from '@/components/account/OrderTimeline';
 import { Button } from '@/components/ui/Button';
 import { updateOrderAction } from '@/lib/actions/orders';
+import { voidOrderPayment, refundOrderPayment } from '@/lib/actions/admin-payment';
 import type { OrderStatus } from '@/lib/types/order';
 import { cn } from '@/lib/utils/cn';
 
 const STATUS_OPTIONS: OrderStatus[] = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 const INPUT_CLS = 'w-full px-4 py-2.5 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors';
 const LABEL_CLS = 'block text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-2';
+
+const PAYMENT_STATUS_STYLES: Record<string, string> = {
+  pending: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+  paid: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+  failed: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+  refunded: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
+  voided: 'bg-pbs-gray-100 dark:bg-pbs-gray-800 text-pbs-gray-600 dark:text-pbs-gray-400',
+};
 
 type OrderData = {
   id: string;
@@ -33,6 +42,11 @@ type OrderData = {
   notes: string;
   items: { productId: string; name: string; categoryId: string; categoryName: string; size: string; qty: number; unitPrice: number; lineTotal: number }[];
   shippingAddress: { line1: string; line2?: string; city: string; state: string; zip: string; country: string };
+  paymentStatus: string;
+  paymentId: string;
+  paymentAuthCode: string;
+  paymentMethod: { cardType: string; lastFour: string } | null;
+  transactionId: string;
 };
 
 export function AdminOrderDetailClient({ order }: { order: OrderData }) {
@@ -41,6 +55,11 @@ export function AdminOrderDetailClient({ order }: { order: OrderData }) {
   const [notes, setNotes] = useState(order.notes);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(order.paymentStatus);
+  const [voidLoading, setVoidLoading] = useState(false);
+  const [refundLoading, setRefundLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+  const [paymentSuccess, setPaymentSuccess] = useState('');
 
   const handleSave = async () => {
     setSaving(true);
@@ -48,6 +67,36 @@ export function AdminOrderDetailClient({ order }: { order: OrderData }) {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  };
+
+  const handleVoid = async () => {
+    if (!confirm('Are you sure you want to void this transaction? This cannot be undone.')) return;
+    setVoidLoading(true);
+    setPaymentError('');
+    setPaymentSuccess('');
+    const result = await voidOrderPayment(order.id);
+    setVoidLoading(false);
+    if ('error' in result) {
+      setPaymentError(result.error as string);
+    } else {
+      setPaymentStatus('voided');
+      setPaymentSuccess('Transaction voided successfully.');
+    }
+  };
+
+  const handleRefund = async () => {
+    if (!confirm(`Are you sure you want to refund $${order.total.toFixed(2)}? This cannot be undone.`)) return;
+    setRefundLoading(true);
+    setPaymentError('');
+    setPaymentSuccess('');
+    const result = await refundOrderPayment(order.id);
+    setRefundLoading(false);
+    if ('error' in result) {
+      setPaymentError(result.error as string);
+    } else {
+      setPaymentStatus('refunded');
+      setPaymentSuccess('Refund processed successfully.');
+    }
   };
 
   return (
@@ -110,6 +159,69 @@ export function AdminOrderDetailClient({ order }: { order: OrderData }) {
                 <div className="flex justify-between text-pbs-gray-500 dark:text-pbs-gray-400"><span>Shipping</span><span>{order.shipping === 0 ? 'Free' : `$${order.shipping.toFixed(2)}`}</span></div>
                 <div className="flex justify-between font-bold text-pbs-gray-900 dark:text-white text-base pt-2 border-t border-pbs-gray-100 dark:border-pbs-gray-800"><span>Total</span><span>${order.total.toLocaleString()}</span></div>
               </div>
+            </div>
+
+            {/* Payment Information */}
+            <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6">
+              <h3 className="text-sm font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-5">
+                <CreditCard className="inline h-3.5 w-3.5 mr-1 -mt-0.5" />Payment Information
+              </h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-pbs-gray-500 dark:text-pbs-gray-400">Status</span>
+                  <span className={cn('px-2.5 py-0.5 rounded-lg text-xs font-semibold capitalize', PAYMENT_STATUS_STYLES[paymentStatus] || PAYMENT_STATUS_STYLES.pending)}>
+                    {paymentStatus}
+                  </span>
+                </div>
+                {order.paymentMethod && (
+                  <div className="flex justify-between">
+                    <span className="text-pbs-gray-500 dark:text-pbs-gray-400">Card</span>
+                    <span className="font-medium text-pbs-gray-900 dark:text-white">{order.paymentMethod.cardType} ****{order.paymentMethod.lastFour}</span>
+                  </div>
+                )}
+                {order.paymentId && (
+                  <div className="flex justify-between">
+                    <span className="text-pbs-gray-500 dark:text-pbs-gray-400">Transaction ID</span>
+                    <span className="font-mono text-xs text-pbs-gray-700 dark:text-pbs-gray-300">{order.paymentId}</span>
+                  </div>
+                )}
+                {order.paymentAuthCode && (
+                  <div className="flex justify-between">
+                    <span className="text-pbs-gray-500 dark:text-pbs-gray-400">Auth Code</span>
+                    <span className="font-mono text-xs text-pbs-gray-700 dark:text-pbs-gray-300">{order.paymentAuthCode}</span>
+                  </div>
+                )}
+                {order.transactionId && (
+                  <div className="flex justify-between">
+                    <span className="text-pbs-gray-500 dark:text-pbs-gray-400">Reference</span>
+                    <span className="font-mono text-xs text-pbs-gray-700 dark:text-pbs-gray-300">{order.transactionId}</span>
+                  </div>
+                )}
+              </div>
+
+              {paymentError && (
+                <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
+                  {paymentError}
+                </div>
+              )}
+              {paymentSuccess && (
+                <div className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm rounded-xl px-4 py-3">
+                  {paymentSuccess}
+                </div>
+              )}
+
+              {paymentStatus === 'paid' && (
+                <div className="mt-5 pt-5 border-t border-pbs-gray-100 dark:border-pbs-gray-800 flex gap-3">
+                  <Button variant="outline" size="sm" className="gap-1.5" onClick={handleVoid} disabled={voidLoading || refundLoading}>
+                    <Ban className="h-3.5 w-3.5" />
+                    {voidLoading ? 'Processing...' : 'Void'}
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5" onClick={handleRefund} disabled={voidLoading || refundLoading}>
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    {refundLoading ? 'Processing...' : 'Refund'}
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Update Order */}

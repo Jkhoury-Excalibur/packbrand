@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
-import { ShoppingBag, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ArrowRight, CreditCard, Lock, ChevronLeft } from 'lucide-react';
+import CardBrandLogos from '@/components/checkout/CardBrandLogos';
 import { Button } from '@/components/ui/Button';
 import { useCartStore } from '@/lib/store/cart';
-import { createOrder } from '@/lib/actions/orders';
+import { createOrderAndInitiatePayment } from '@/lib/actions/payment';
 
 const INPUT_CLS = 'w-full px-4 py-3 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors';
 const LABEL_CLS = 'block text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-2';
@@ -21,9 +21,10 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [step, setStep] = useState<'form' | 'payment'>('form');
+  const [iframeUrl, setIframeUrl] = useState('');
+  const [orderNumber, setOrderNumber] = useState('');
   const items = useCartStore((s) => s.items);
-  const clearCart = useCartStore((s) => s.clearCart);
-  const router = useRouter();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -34,7 +35,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
   const tax = Math.round(subtotal * taxRate * 100) / 100;
   const total = subtotal + shipping + tax;
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  const handleContinueToPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
@@ -71,7 +72,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
       specialInstructions: get('instructions') || undefined,
     };
 
-    const result = await createOrder(orderData);
+    const result = await createOrderAndInitiatePayment(orderData);
     setSubmitting(false);
 
     if ('error' in result) {
@@ -79,8 +80,9 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
       return;
     }
 
-    clearCart();
-    router.push(`/checkout/success?order=${result.orderNumber}`);
+    setOrderNumber(result.orderNumber!);
+    setIframeUrl(result.iframeUrl!);
+    setStep('payment');
   };
 
   if (items.length === 0) {
@@ -98,6 +100,121 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
     );
   }
 
+  // ── Order Summary (shared between both steps) ──
+  const orderSummary = (
+    <div className="lg:sticky lg:top-24">
+      <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 space-y-5">
+        <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white">Order Summary</h2>
+
+        <div className="space-y-3">
+          {items.map((item) => (
+            <div key={item.id} className="flex justify-between gap-3 text-sm">
+              <div className="min-w-0">
+                <p className="font-medium text-pbs-gray-900 dark:text-white truncate">{item.name}</p>
+                <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400">
+                  {item.size !== 'Standard' && `${item.size} · `}{item.qtyLabel}
+                </p>
+              </div>
+              <span className="shrink-0 font-semibold text-pbs-gray-900 dark:text-white">
+                ${item.lineTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-2 text-sm border-t border-pbs-gray-100 dark:border-pbs-gray-800 pt-4">
+          <div className="flex justify-between text-pbs-gray-600 dark:text-pbs-gray-400">
+            <span>Subtotal</span>
+            <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          </div>
+          <div className="flex justify-between text-pbs-gray-600 dark:text-pbs-gray-400">
+            <span>Shipping</span>
+            <span className={shipping === 0 ? 'text-green-600 dark:text-green-400 font-medium' : ''}>
+              {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+            </span>
+          </div>
+          {tax > 0 && (
+            <div className="flex justify-between text-pbs-gray-600 dark:text-pbs-gray-400">
+              <span>Tax</span>
+              <span>${tax.toFixed(2)}</span>
+            </div>
+          )}
+          <div className="flex justify-between font-bold text-pbs-gray-900 dark:text-white text-base border-t border-pbs-gray-100 dark:border-pbs-gray-800 pt-2">
+            <span>Total</span>
+            <span>${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          </div>
+        </div>
+
+        {step === 'form' && (
+          <>
+            <Button type="submit" variant="primary" size="lg" className="w-full" disabled={submitting}>
+              {submitting ? 'Processing...' : 'Continue to Payment'}
+              {!submitting && <CreditCard className="ml-2 h-4 w-4" />}
+            </Button>
+
+            <CardBrandLogos className="justify-center" />
+
+            <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 text-center leading-relaxed">
+              By placing your order, you agree to our{' '}
+              <Link href="/terms" className="text-pbs-red hover:underline font-medium">Terms</Link>
+              {' '}and{' '}
+              <Link href="/privacy" className="text-pbs-red hover:underline font-medium">Privacy Policy</Link>.
+            </p>
+          </>
+        )}
+
+        {step === 'payment' && (
+          <div className="flex items-center justify-center gap-2 text-xs text-pbs-gray-500 dark:text-pbs-gray-400">
+            <Lock className="h-3.5 w-3.5" />
+            <span>Secure payment powered by Enhanced Gateway</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ── Step 2: Payment Iframe ──
+  if (step === 'payment') {
+    return (
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="mb-8">
+          <button
+            type="button"
+            onClick={() => setStep('form')}
+            className="inline-flex items-center gap-1.5 text-sm text-pbs-gray-500 dark:text-pbs-gray-400 hover:text-pbs-red transition-colors mb-4"
+          >
+            <ChevronLeft className="h-4 w-4" /> Back to Details
+          </button>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">Complete Payment</h1>
+              <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">
+                Order {orderNumber} — Enter your card details below.
+              </p>
+            </div>
+            <CardBrandLogos />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2">
+            <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 overflow-hidden">
+              <iframe
+                src={iframeUrl}
+                className="w-full min-h-[600px] border-0"
+                title="Payment Form"
+                sandbox="allow-scripts allow-forms allow-same-origin allow-top-navigation"
+              />
+            </div>
+          </div>
+
+          {orderSummary}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 1: Checkout Form ──
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -105,7 +222,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
         <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">Complete your order details below.</p>
       </div>
 
-      <form onSubmit={handlePlaceOrder}>
+      <form onSubmit={handleContinueToPayment}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
           {/* Left column — forms */}
@@ -193,63 +310,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
           </div>
 
           {/* Right — sticky summary */}
-          <div className="lg:sticky lg:top-24">
-            <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 space-y-5">
-              <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white">Order Summary</h2>
-
-              {/* Items */}
-              <div className="space-y-3">
-                {items.map((item) => (
-                  <div key={item.id} className="flex justify-between gap-3 text-sm">
-                    <div className="min-w-0">
-                      <p className="font-medium text-pbs-gray-900 dark:text-white truncate">{item.name}</p>
-                      <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400">
-                        {item.size !== 'Standard' && `${item.size} · `}{item.qtyLabel}
-                      </p>
-                    </div>
-                    <span className="shrink-0 font-semibold text-pbs-gray-900 dark:text-white">
-                      ${item.lineTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-2 text-sm border-t border-pbs-gray-100 dark:border-pbs-gray-800 pt-4">
-                <div className="flex justify-between text-pbs-gray-600 dark:text-pbs-gray-400">
-                  <span>Subtotal</span>
-                  <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
-                <div className="flex justify-between text-pbs-gray-600 dark:text-pbs-gray-400">
-                  <span>Shipping</span>
-                  <span className={shipping === 0 ? 'text-green-600 dark:text-green-400 font-medium' : ''}>
-                    {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
-                  </span>
-                </div>
-                {tax > 0 && (
-                  <div className="flex justify-between text-pbs-gray-600 dark:text-pbs-gray-400">
-                    <span>Tax</span>
-                    <span>${tax.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between font-bold text-pbs-gray-900 dark:text-white text-base border-t border-pbs-gray-100 dark:border-pbs-gray-800 pt-2">
-                  <span>Total</span>
-                  <span>${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
-              </div>
-
-              <Button type="submit" variant="primary" size="lg" className="w-full" disabled={submitting}>
-                {submitting ? 'Placing Order...' : 'Place Order'}
-                {!submitting && <ArrowRight className="ml-2 h-4 w-4" />}
-              </Button>
-
-              <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 text-center leading-relaxed">
-                By placing your order, you agree to our{' '}
-                <Link href="/terms" className="text-pbs-red hover:underline font-medium">Terms</Link>
-                {' '}and{' '}
-                <Link href="/privacy" className="text-pbs-red hover:underline font-medium">Privacy Policy</Link>.
-              </p>
-            </div>
-          </div>
+          {orderSummary}
 
         </div>
       </form>

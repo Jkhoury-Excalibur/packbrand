@@ -7,10 +7,10 @@ import { CheckCircle, Package, Palette, Factory, Truck, ArrowRight, ShoppingBag 
 import { Button } from '@/components/ui/Button';
 
 const STEPS = [
-  { icon: CheckCircle, label: 'Order Received',  desc: 'We\'ve got your order' },
-  { icon: Palette,     label: 'Design Review',   desc: 'Our team reviews your artwork' },
-  { icon: Factory,     label: 'Production',       desc: 'Your items are printed & made' },
-  { icon: Truck,       label: 'Shipping',         desc: 'Delivered to your door' },
+  { icon: CheckCircle, label: 'Payment Confirmed', desc: 'Your payment was successful' },
+  { icon: Palette,     label: 'Design Review',     desc: 'Our team reviews your artwork' },
+  { icon: Factory,     label: 'Production',         desc: 'Your items are printed & made' },
+  { icon: Truck,       label: 'Shipping',           desc: 'Delivered to your door' },
 ];
 
 function SuccessContent() {
@@ -28,8 +28,8 @@ function SuccessContent() {
           </div>
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">Order Received!</h1>
-          <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-2">We'll be in touch within 24 hours to confirm your order.</p>
+          <h1 className="text-3xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">Order Confirmed!</h1>
+          <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-2">Your payment has been processed. Here&apos;s what happens next.</p>
         </div>
         {orderNumber && (
           <div className="inline-flex items-center gap-2 bg-white dark:bg-pbs-gray-900 border border-pbs-gray-200 dark:border-pbs-gray-700 rounded-2xl px-5 py-3">
