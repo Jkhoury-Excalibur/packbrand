@@ -6,8 +6,24 @@ import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminTable } from '@/components/admin/AdminTable';
 import { StatusBadge } from '@/components/admin/StatusBadge';
-import type { OrderStatus } from '@/lib/types/order';
+import type { OrderStatus, PaymentStatus } from '@/lib/types/order';
 import { cn } from '@/lib/utils/cn';
+
+const PAYMENT_STYLES: Record<PaymentStatus, string> = {
+  pending:  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+  paid:     'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+  failed:   'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  refunded: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+  voided:   'bg-pbs-gray-100 text-pbs-gray-500 dark:bg-pbs-gray-800 dark:text-pbs-gray-400',
+};
+
+const PAYMENT_LABELS: Record<PaymentStatus, string> = {
+  pending: 'Unpaid',
+  paid: 'Paid',
+  failed: 'Failed',
+  refunded: 'Refunded',
+  voided: 'Voided',
+};
 
 const PAGE_SIZE = 25;
 
@@ -22,6 +38,7 @@ type OrderRow = {
   date: string;
   total: number;
   status: string;
+  paymentStatus: PaymentStatus;
 };
 
 const STATUS_TABS: { key: OrderStatus | 'All'; label: string }[] = [
@@ -72,6 +89,11 @@ export function AdminOrdersClient({ orders }: { orders: OrderRow[] }) {
     { key: 'date',     header: 'Date',      render: (o: OrderRow) => <span className="text-pbs-gray-500 dark:text-pbs-gray-400">{o.date}</span> },
     { key: 'total',    header: 'Total',     render: (o: OrderRow) => <span className="font-semibold">${o.total.toLocaleString()}</span> },
     { key: 'status',   header: 'Status',    render: (o: OrderRow) => <StatusBadge status={o.status as OrderStatus} /> },
+    { key: 'payment',  header: 'Payment',   render: (o: OrderRow) => (
+      <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold', PAYMENT_STYLES[o.paymentStatus])}>
+        {PAYMENT_LABELS[o.paymentStatus]}
+      </span>
+    )},
     { key: 'actions',  header: '',          render: (o: OrderRow) => (
       <Link href={`/admin/orders/${o.id}`} className="text-xs font-medium text-pbs-red hover:underline">View</Link>
     )},

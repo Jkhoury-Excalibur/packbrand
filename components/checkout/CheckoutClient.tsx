@@ -176,29 +176,35 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
   // ── Step 2: Payment Iframe ──
   if (step === 'payment') {
     return (
-      <div className="max-w-2xl mx-auto p-4 sm:p-6 space-y-4">
-        <div className="rounded-2xl bg-pbs-red p-4 flex items-center justify-between">
-          <div className="text-white">
-            <div className="font-semibold">PackBrand Solutions</div>
-            <div className="text-sm opacity-90">Secure Payment — ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} — {orderNumber}</div>
-          </div>
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="mb-6">
           <button
             type="button"
             onClick={() => setStep('form')}
-            className="flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors text-sm"
+            className="inline-flex items-center gap-1.5 text-sm text-pbs-gray-500 dark:text-pbs-gray-400 hover:text-pbs-red transition-colors mb-4"
           >
             <ChevronLeft className="h-4 w-4" />
-            Cancel
+            Back to Details
           </button>
+          <h1 className="text-3xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">Complete Payment</h1>
+          <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">Order {orderNumber} — Enter your card details below.</p>
         </div>
 
-        <iframe
-          src={iframeUrl}
-          className="w-full border-0 rounded-2xl bg-white dark:bg-pbs-gray-900"
-          style={{ minHeight: '600px' }}
-          title="Payment Form"
-          sandbox="allow-scripts allow-forms allow-same-origin allow-top-navigation"
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2">
+            <CardBrandLogos className="mb-4" />
+            <iframe
+              src={iframeUrl}
+              className="w-full border-0 rounded-2xl bg-white dark:bg-pbs-gray-900 overflow-hidden"
+              style={{ minHeight: '100vh' }}
+              title="Payment Form"
+              scrolling="no"
+              sandbox="allow-scripts allow-forms allow-same-origin allow-top-navigation"
+            />
+          </div>
+
+          {orderSummary}
+        </div>
       </div>
     );
   }
