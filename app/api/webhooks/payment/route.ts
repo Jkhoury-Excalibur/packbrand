@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getOrderByTransactionId, updateOrderPayment } from '@/lib/db/orders';
+import { getCartByTransactionId, markCartCompleted, markCartFailed } from '@/lib/db/carts';
+import { createOrderFromCart } from '@/lib/db/orders';
 import { verifyWebhookToken, parseWebhookPayload } from '@/lib/payment/enhanced-gateway';
 import { sendEmail } from '@/lib/email';
 import { escapeHtml } from '@/lib/utils/escapeHtml';
@@ -22,7 +23,6 @@ export async function POST(request: Request) {
       const formData = await request.text();
       console.log('[webhook] Raw form data:', formData);
       payload = Object.fromEntries(new URLSearchParams(formData));
-      // Parse boolean string from form data
       if (typeof payload.TransactionResult === 'string') {
         payload.TransactionResult = payload.TransactionResult === 'true';
       }
@@ -37,25 +37,30 @@ export async function POST(request: Request) {
       payload.Ticketid) as string | undefined;
 
     console.log('[webhook] Extracted ticketId:', ticketId);
-    console.log('[webhook] All payload keys:', Object.keys(payload));
 
     if (!ticketId) {
       console.error('[webhook] Missing ticketid in payload:', Object.keys(payload));
       return NextResponse.json({ received: true, error: 'Missing ticket ID' });
     }
 
-    // Look up order by transactionId
-    const order = await getOrderByTransactionId(ticketId);
-    if (!order) {
-      console.error('[webhook] Order not found for transactionId:', ticketId);
-      return NextResponse.json({ received: true, error: 'Order not found' });
+    // Look up cart by transactionId
+    const cart = await getCartByTransactionId(ticketId);
+    if (!cart) {
+      console.error('[webhook] Cart not found for transactionId:', ticketId);
+      return NextResponse.json({ received: true, error: 'Cart not found' });
     }
 
-    console.log('[webhook] Found order:', order.orderNumber, '| current paymentStatus:', order.paymentStatus);
+    console.log('[webhook] Found cart:', cart.cartId, '| status:', cart.status);
+
+    // Idempotency: only process if cart is still in checkout state
+    if (cart.status === 'completed') {
+      console.log('[webhook] Already completed (duplicate webhook)');
+      return NextResponse.json({ received: true, duplicate: true });
+    }
 
     // Verify HMAC token
     if (urlToken && !verifyWebhookToken(ticketId, urlToken)) {
-      console.error('[webhook] Invalid HMAC token for order:', order.orderNumber);
+      console.error('[webhook] Invalid HMAC token for cart:', cart.cartId);
       return NextResponse.json({ received: true, error: 'Invalid token' });
     }
 
@@ -64,8 +69,8 @@ export async function POST(request: Request) {
     console.log('[webhook] Parsed result:', JSON.stringify(result, null, 2));
 
     if (result.success) {
-      // Idempotency: updateOrderPayment only updates if paymentStatus is still 'pending'
-      const updateResult = await updateOrderPayment(ticketId, {
+      // Create the real order now that payment succeeded
+      const order = await createOrderFromCart(cart, {
         paymentStatus: 'paid',
         paymentId: result.transactionId,
         paymentAuthCode: result.authCode,
@@ -76,21 +81,19 @@ export async function POST(request: Request) {
         paymentResponse: result.rawResponse,
       });
 
-      if (updateResult.modifiedCount === 0) {
-        // Already processed (duplicate webhook)
-        return NextResponse.json({ received: true, duplicate: true });
-      }
+      // Mark cart as completed with the order number
+      await markCartCompleted(cart.cartId, order.orderNumber);
 
       // Send confirmation email
-      const { contact } = order;
+      const contact = cart.contact!;
       await sendEmail({
         to: contact.email,
-        subject: `Payment Confirmed — ${order.orderNumber}`,
+        subject: `Order Confirmed — ${order.orderNumber}`,
         html: `
           <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
-            <h2 style="color: #1a1a1a;">Payment Confirmed!</h2>
+            <h2 style="color: #1a1a1a;">Order Confirmed!</h2>
             <p>Hi ${escapeHtml(contact.firstName)},</p>
-            <p>Your payment has been processed successfully. Here are your details:</p>
+            <p>Your payment has been processed and your order is confirmed. Here are your details:</p>
             <p><strong>Order Number:</strong> ${escapeHtml(order.orderNumber)}</p>
             <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
             <p>We'll send you an update when your order ships.</p>
@@ -101,16 +104,13 @@ export async function POST(request: Request) {
         console.error('[webhook] Email send failed:', err);
       });
 
-      console.log('[webhook] Payment successful:', order.orderNumber);
+      console.log('[webhook] Order created:', order.orderNumber);
       return NextResponse.json({ success: true, orderNumber: order.orderNumber });
     } else {
       // Payment failed
-      await updateOrderPayment(ticketId, {
-        paymentStatus: 'failed',
-        paymentResponse: result.rawResponse,
-      });
+      await markCartFailed(cart.cartId);
 
-      console.warn('[webhook] Payment failed:', order.orderNumber);
+      console.warn('[webhook] Payment failed for cart:', cart.cartId);
       return NextResponse.json({ success: false, message: 'Payment failed' });
     }
   } catch (error) {

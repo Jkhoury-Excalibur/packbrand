@@ -1,6 +1,7 @@
 'use server';
 
 import { updateOrder as dbUpdateOrder, getOrderById } from '../db/orders';
+import { getCart } from '../db/carts';
 import { updateOrderSchema } from '../validators';
 import { requireAdmin } from '../auth-helpers';
 import { sendEmail } from '../email';
@@ -11,6 +12,16 @@ export async function getOrderPaymentStatus(orderNumber: string) {
   const order = await getOrderById(orderNumber);
   if (!order) return { paymentStatus: 'not_found' as const };
   return { paymentStatus: order.paymentStatus };
+}
+
+/** Public: check checkout session status by cartId (no auth required). */
+export async function getCheckoutStatus(cartId: string) {
+  const cart = await getCart(cartId);
+  if (!cart) return { status: 'not_found' as const };
+  return {
+    status: cart.status,
+    orderNumber: cart.orderNumber,
+  };
 }
 
 export async function updateOrderAction(orderId: string, formData: unknown) {

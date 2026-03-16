@@ -15,43 +15,75 @@ export type CartItem = {
 };
 
 type CartStore = {
+  cartId: string;
   items: CartItem[];
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
 };
 
+function generateCartId(): string {
+  return crypto.randomUUID();
+}
+
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
+
+function syncToServer(cartId: string, items: CartItem[]) {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    fetch('/api/cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cartId, items }),
+    }).catch((err) => {
+      console.error('[cart] Sync failed:', err);
+    });
+  }, 500);
+}
+
 export const useCartStore = create<CartStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
+      cartId: '',
       items: [],
 
       addItem: (item) =>
         set((state) => {
           const existing = state.items.find((i) => i.id === item.id);
-          if (existing) {
-            // Replace with new selection (same product+size, different qty)
-            return {
-              items: state.items.map((i) =>
-                i.id === item.id ? item : i,
-              ),
-            };
-          }
-          return { items: [...state.items, item] };
+          const newItems = existing
+            ? state.items.map((i) => (i.id === item.id ? item : i))
+            : [...state.items, item];
+          syncToServer(state.cartId, newItems);
+          return { items: newItems };
         }),
 
       removeItem: (id) =>
-        set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
+        set((state) => {
+          const newItems = state.items.filter((i) => i.id !== id);
+          syncToServer(state.cartId, newItems);
+          return { items: newItems };
+        }),
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => {
+        const { cartId } = get();
+        syncToServer(cartId, []);
+        set({ items: [] });
+      },
     }),
     {
       name: 'pbs-cart',
-      version: 2,
-      migrate: () => {
-        // v1→v2: category string replaced with categoryId+categoryName
-        // Clear old cart items since they have incompatible shape
-        return { items: [] };
+      version: 3,
+      migrate: (persisted) => {
+        const state = persisted as Record<string, unknown>;
+        return {
+          items: Array.isArray(state.items) ? state.items : [],
+          cartId: (state.cartId as string) || generateCartId(),
+        };
+      },
+      onRehydrateStorage: () => (state) => {
+        if (state && !state.cartId) {
+          state.cartId = generateCartId();
+        }
       },
     },
   ),

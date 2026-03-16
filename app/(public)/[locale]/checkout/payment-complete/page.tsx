@@ -7,12 +7,11 @@ import { Loader2 } from 'lucide-react';
 
 function PaymentCompleteContent() {
   const searchParams = useSearchParams();
-  const orderNumber = searchParams.get('order') ?? '';
+  const sessionId = searchParams.get('session') ?? '';
   const locale = useLocale();
 
   useEffect(() => {
-    // Always redirect to success page — it verifies payment status from DB
-    const successUrl = `/${locale}/checkout/success?order=${orderNumber}`;
+    const successUrl = `/${locale}/checkout/success?session=${sessionId}`;
 
     const timer = setTimeout(() => {
       if (window.top && window.top !== window) {
@@ -22,7 +21,7 @@ function PaymentCompleteContent() {
       }
     }, 1500);
     return () => clearTimeout(timer);
-  }, [orderNumber, locale]);
+  }, [sessionId, locale]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8">

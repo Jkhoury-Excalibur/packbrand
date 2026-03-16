@@ -6,7 +6,7 @@ import { ShoppingBag, ArrowRight, CreditCard, Lock, ChevronLeft } from 'lucide-r
 import CardBrandLogos from '@/components/checkout/CardBrandLogos';
 import { Button } from '@/components/ui/Button';
 import { useCartStore } from '@/lib/store/cart';
-import { createOrderAndInitiatePayment } from '@/lib/actions/payment';
+import { initiateCheckoutPayment } from '@/lib/actions/payment';
 
 const INPUT_CLS = 'w-full px-4 py-3 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors';
 const LABEL_CLS = 'block text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-2';
@@ -23,7 +23,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
   const [error, setError] = useState('');
   const [step, setStep] = useState<'form' | 'payment'>('form');
   const [iframeUrl, setIframeUrl] = useState('');
-  const [orderNumber, setOrderNumber] = useState('');
+  const cartId = useCartStore((s) => s.cartId);
   const items = useCartStore((s) => s.items);
 
   useEffect(() => { setMounted(true); }, []);
@@ -43,7 +43,8 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
     const form = e.target as HTMLFormElement;
     const get = (id: string) => (form.elements.namedItem(id) as HTMLInputElement | HTMLTextAreaElement)?.value ?? '';
 
-    const orderData = {
+    const checkoutData = {
+      cartId,
       contact: {
         firstName: get('firstName'),
         lastName: get('lastName'),
@@ -72,7 +73,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
       specialInstructions: get('instructions') || undefined,
     };
 
-    const result = await createOrderAndInitiatePayment(orderData);
+    const result = await initiateCheckoutPayment(checkoutData);
     setSubmitting(false);
 
     if ('error' in result) {
@@ -80,7 +81,6 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
       return;
     }
 
-    setOrderNumber(result.orderNumber!);
     setIframeUrl(result.iframeUrl!);
     setStep('payment');
   };
@@ -187,7 +187,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
             Back to Details
           </button>
           <h1 className="text-3xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">Complete Payment</h1>
-          <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">Order {orderNumber} — Enter your card details below.</p>
+          <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">Enter your card details below to complete your purchase.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

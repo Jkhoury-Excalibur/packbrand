@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/lib/store/cart';
-import { getOrderPaymentStatus } from '@/lib/actions/orders';
+import { getCheckoutStatus } from '@/lib/actions/orders';
 import { Link } from '@/i18n/navigation';
 import {
   CheckCircle, Package, Palette, Factory, Truck,
@@ -18,33 +18,35 @@ const STEPS = [
   { icon: Truck,       label: 'Shipping',           desc: 'Delivered to your door' },
 ];
 
-type Status = 'loading' | 'paid' | 'pending' | 'failed' | 'refunded' | 'voided' | 'not_found';
+type Status = 'loading' | 'active' | 'checkout' | 'completed' | 'failed' | 'not_found';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const orderNumber = searchParams.get('order') ?? '';
+  const sessionId = searchParams.get('session') ?? '';
   const clearCart = useCartStore((s) => s.clearCart);
   const [status, setStatus] = useState<Status>('loading');
+  const [orderNumber, setOrderNumber] = useState('');
 
   const checkStatus = useCallback(async () => {
-    if (!orderNumber) { setStatus('not_found'); return; }
-    const result = await getOrderPaymentStatus(orderNumber);
-    setStatus(result.paymentStatus === 'not_found' ? 'not_found' : result.paymentStatus);
-  }, [orderNumber]);
+    if (!sessionId) { setStatus('not_found'); return; }
+    const result = await getCheckoutStatus(sessionId);
+    setStatus(result.status);
+    if (result.orderNumber) setOrderNumber(result.orderNumber);
+  }, [sessionId]);
 
   // Initial check
   useEffect(() => { checkStatus(); }, [checkStatus]);
 
-  // Poll every 3s while pending
+  // Poll every 3s while still processing
   useEffect(() => {
-    if (status !== 'pending' && status !== 'loading') return;
+    if (status !== 'checkout' && status !== 'loading' && status !== 'active') return;
     const interval = setInterval(checkStatus, 3000);
     return () => clearInterval(interval);
   }, [status, checkStatus]);
 
-  // Clear cart once paid
+  // Clear cart once completed
   useEffect(() => {
-    if (status === 'paid') clearCart();
+    if (status === 'completed') clearCart();
   }, [status, clearCart]);
 
   // --- Loading ---
@@ -57,8 +59,8 @@ function SuccessContent() {
     );
   }
 
-  // --- Pending (webhook hasn't processed yet) ---
-  if (status === 'pending') {
+  // --- Checkout (webhook hasn't processed yet) ---
+  if (status === 'checkout') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8">
         <Loader2 className="h-12 w-12 text-amber-500 animate-spin" />
@@ -67,11 +69,6 @@ function SuccessContent() {
           <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-2">
             We&apos;re confirming your payment. This usually takes a few seconds.
           </p>
-          {orderNumber && (
-            <p className="text-sm text-pbs-gray-400 dark:text-pbs-gray-500 mt-2">
-              Order reference: <span className="font-mono font-bold">{orderNumber}</span>
-            </p>
-          )}
         </div>
       </div>
     );
@@ -89,11 +86,6 @@ function SuccessContent() {
           <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-2">
             Your payment could not be processed. Please try again.
           </p>
-          {orderNumber && (
-            <p className="text-sm text-pbs-gray-400 dark:text-pbs-gray-500 mt-1">
-              Order reference: <span className="font-mono font-bold">{orderNumber}</span>
-            </p>
-          )}
         </div>
         <Link href="/checkout">
           <Button variant="primary" size="lg">Return to Checkout</Button>
@@ -102,7 +94,7 @@ function SuccessContent() {
     );
   }
 
-  // --- Paid (success) ---
+  // --- Completed (success) ---
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-8">
 
@@ -131,7 +123,6 @@ function SuccessContent() {
         <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white mb-8">What happens next</h2>
 
         <div className="relative">
-          {/* Connector line */}
           <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-pbs-gray-100 dark:bg-pbs-gray-800" aria-hidden="true" />
 
           <div className="space-y-6">

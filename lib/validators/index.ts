@@ -101,6 +101,22 @@ export const createOrderSchema = z.object({
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
+export const checkoutSchema = z.object({
+  cartId: z.string().uuid(),
+  contact: z.object({
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+    email: z.string().email(),
+    phone: z.string().min(1),
+    company: z.string().optional(),
+  }),
+  shippingAddress: shippingAddressSchema,
+  items: z.array(orderItemSchema).min(1),
+  specialInstructions: z.string().optional(),
+});
+
+export type CheckoutInput = z.infer<typeof checkoutSchema>;
+
 export const paymentStatusSchema = z.enum([
   'pending',
   'paid',

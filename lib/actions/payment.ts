@@ -1,52 +1,69 @@
 'use server';
 
-import { createOrder as dbCreateOrder } from '../db/orders';
-import { createOrderSchema } from '../validators';
+import { checkoutSchema } from '../validators';
 import { getSession } from '../auth-helpers';
 import { getSettings } from '../db/settings';
+import { updateCartCheckout } from '../db/carts';
+import { generateTransactionId } from '../utils/transaction';
 import { initiatePayment, generateWebhookToken } from '../payment/enhanced-gateway';
 
-export async function createOrderAndInitiatePayment(formData: unknown) {
-  const parsed = createOrderSchema.safeParse(formData);
+export async function initiateCheckoutPayment(formData: unknown) {
+  const parsed = checkoutSchema.safeParse(formData);
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors };
   }
 
+  const { cartId, contact, shippingAddress, items, specialInstructions } = parsed.data;
+
   const session = await getSession();
   const customerId = session?.user?.id;
 
+  // Compute totals
   const settings = await getSettings();
-  const order = await dbCreateOrder(
-    parsed.data,
+  const taxRate = settings.taxRate ?? 0;
+  const shippingRate = settings.shippingRate ?? 49.99;
+  const freeShippingThreshold = settings.freeShippingThreshold ?? 500;
+
+  const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+  const shipping = subtotal >= freeShippingThreshold ? 0 : shippingRate;
+  const tax = Math.round(subtotal * taxRate * 100) / 100;
+  const total = subtotal + shipping + tax;
+
+  const transactionId = generateTransactionId();
+
+  // Save checkout data to cart doc
+  await updateCartCheckout(cartId, {
+    contact,
+    shippingAddress,
+    specialInstructions,
+    items,
+    subtotal,
+    shipping,
+    tax,
+    total,
+    transactionId,
     customerId,
-    settings.taxRate ?? 0,
-    settings.shippingRate ?? 49.99,
-    settings.freeShippingThreshold ?? 500,
-  );
+  });
 
   // Build webhook URL with HMAC token
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://packbrandsolutions.com';
-  const webhookToken = generateWebhookToken(order.transactionId);
+  const webhookToken = generateWebhookToken(transactionId);
   const webhookUrl = webhookToken
     ? `${baseUrl}/api/webhooks/payment?token=${webhookToken}`
     : `${baseUrl}/api/webhooks/payment`;
 
-  // Build success/failure redirect URLs
-  const successUrl = `${baseUrl}/checkout/payment-complete?order=${order.orderNumber}`;
-  const failureUrl = `${baseUrl}/checkout/payment-complete?order=${order.orderNumber}&error=failed`;
+  const successUrl = `${baseUrl}/checkout/payment-complete?session=${cartId}`;
+  const failureUrl = `${baseUrl}/checkout/payment-complete?session=${cartId}&error=failed`;
 
   console.log('[payment] ===== INITIATING PAYMENT =====');
-  console.log('[payment] Order:', order.orderNumber);
-  console.log('[payment] TransactionId:', order.transactionId);
-  console.log('[payment] Amount:', order.total);
-  console.log('[payment] BaseUrl:', baseUrl);
+  console.log('[payment] CartId:', cartId);
+  console.log('[payment] TransactionId:', transactionId);
+  console.log('[payment] Amount:', total);
   console.log('[payment] WebhookUrl:', webhookUrl);
-  console.log('[payment] SuccessUrl:', successUrl);
-  console.log('[payment] FailureUrl:', failureUrl);
 
   const paymentResult = await initiatePayment({
-    transactionId: order.transactionId,
-    amount: order.total,
+    transactionId,
+    amount: total,
     webhookUrl,
     successUrl,
     failureUrl,
@@ -60,7 +77,7 @@ export async function createOrderAndInitiatePayment(formData: unknown) {
 
   return {
     success: true,
-    orderNumber: order.orderNumber,
+    cartId,
     iframeUrl: paymentResult.iframeUrl,
   };
 }
