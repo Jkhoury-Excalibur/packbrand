@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { createStaffAction, updateStaffAction } from '@/lib/actions/staff';
+import { createStaffAction, updateStaffAction, setStaffPasswordAction } from '@/lib/actions/staff';
 import { cn } from '@/lib/utils/cn';
 
 const INPUT_CLS = 'w-full px-4 py-2.5 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors';
@@ -33,13 +33,16 @@ export function StaffFormModal({ staff, onClose, onSaved }: Props) {
   const [phone, setPhone] = useState(staff?.phone ?? '');
   const [role, setRole] = useState(staff?.role ?? ROLES[0]);
   const [status, setStatus] = useState(staff?.status ?? 'Active');
+  const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError('');
+    setPasswordSuccess('');
 
     const data = { name, email, phone, role, status };
 
@@ -47,13 +50,24 @@ export function StaffFormModal({ staff, onClose, onSaved }: Props) {
       ? await createStaffAction(data)
       : await updateStaffAction(staff!.id, data);
 
-    setSaving(false);
-
     if ('error' in result) {
+      setSaving(false);
       setError('Please fill in all required fields.');
       return;
     }
 
+    // Set password if provided
+    if (password) {
+      const staffId = isNew ? (result as unknown as { id: string }).id : staff!.id;
+      const pwResult = await setStaffPasswordAction(staffId, password);
+      if ('error' in pwResult) {
+        setSaving(false);
+        setError(pwResult.error as string);
+        return;
+      }
+    }
+
+    setSaving(false);
     onSaved();
   };
 
@@ -111,6 +125,26 @@ export function StaffFormModal({ staff, onClose, onSaved }: Props) {
             </div>
             <input type="checkbox" checked={isActive} onChange={(e) => setStatus(e.target.checked ? 'Active' : 'Inactive')} className="sr-only" />
           </label>
+
+          {/* Set Login Password */}
+          <div className="border-t border-pbs-gray-100 dark:border-pbs-gray-800 pt-5">
+            <label className={LABEL_CLS}>Login Password {isNew && '*'}</label>
+            <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 mb-2">
+              {isNew ? 'Set a password so this staff member can log in.' : 'Leave blank to keep the current password, or enter a new one to change it.'}
+            </p>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setPasswordSuccess(''); }}
+              className={INPUT_CLS}
+              placeholder="Min. 8 characters"
+              minLength={8}
+              {...(isNew ? { required: true } : {})}
+            />
+            {passwordSuccess && (
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">{passwordSuccess}</p>
+            )}
+          </div>
 
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="outline" size="lg" className="flex-1" onClick={onClose}>
