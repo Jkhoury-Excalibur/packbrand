@@ -14,6 +14,7 @@ export type DbOrder = {
   tax: number;
   total: number;
   status: string;
+  logoUrls?: string[];
   trackingNumber?: string;
   notes?: string;
   specialInstructions?: string;
@@ -63,6 +64,7 @@ export async function createOrder(
     tax,
     total,
     status: 'Pending',
+    logoUrls: data.logoUrls,
     specialInstructions: data.specialInstructions,
     createdAt: now,
     updatedAt: now,

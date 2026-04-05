@@ -25,6 +25,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
     notes: order.notes || '',
     items: order.items,
     shippingAddress: order.shippingAddress,
+    logoUrls: order.logoUrls || [],
   };
 
   return <AdminOrderDetailClient order={serialized} />;

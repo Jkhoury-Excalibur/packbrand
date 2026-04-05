@@ -14,7 +14,7 @@ export async function submitWorkOrder(formData: unknown) {
     return { error: parsed.error.flatten().fieldErrors };
   }
 
-  const { cartId, contact, shippingAddress, items, specialInstructions } = parsed.data;
+  const { cartId, contact, shippingAddress, items, specialInstructions, logoUrls } = parsed.data;
 
   const session = await getSession();
   const customerId = session?.user?.id;
@@ -44,7 +44,7 @@ export async function submitWorkOrder(formData: unknown) {
 
   // Create work order directly
   const order = await createOrder(
-    { contact, shippingAddress, items, specialInstructions },
+    { contact, shippingAddress, items, specialInstructions, logoUrls },
     customerId,
     taxRate,
     shippingRate,
@@ -122,6 +122,7 @@ export async function submitWorkOrder(formData: unknown) {
           <h3 style="color:#333;">Items</h3>
           ${itemsTable}
           ${specialInstructions ? `<hr style="border:none;border-top:1px solid #eee;margin:16px 0;" /><h3 style="color:#333;">Special Instructions</h3><p>${escapeHtml(specialInstructions)}</p>` : ''}
+          ${logoUrls && logoUrls.length > 0 ? `<hr style="border:none;border-top:1px solid #eee;margin:16px 0;" /><h3 style="color:#333;">Logo Files</h3><ul>${logoUrls.map((url) => `<li><a href="${escapeHtml(url)}" target="_blank" style="color:#D32F2F;">${escapeHtml(url.split('/').pop() || 'Logo')}</a></li>`).join('')}</ul>` : ''}
         </div>
       `,
     }),

@@ -97,6 +97,7 @@ export const createOrderSchema = z.object({
   shippingAddress: shippingAddressSchema,
   items: z.array(orderItemSchema).min(1),
   specialInstructions: z.string().optional(),
+  logoUrls: z.array(z.string().url()).max(3).optional(),
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
@@ -113,6 +114,7 @@ export const checkoutSchema = z.object({
   shippingAddress: shippingAddressSchema,
   items: z.array(orderItemSchema).min(1),
   specialInstructions: z.string().optional(),
+  logoUrls: z.array(z.string().url()).max(3).optional(),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

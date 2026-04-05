@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
-import { ShoppingBag, Send } from 'lucide-react';
+import { ShoppingBag, Send, Upload, X, FileImage } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useCartStore } from '@/lib/store/cart';
 import { submitWorkOrder } from '@/lib/actions/work-order';
@@ -21,6 +21,8 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [logoFiles, setLogoFiles] = useState<{ name: string; url: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
   const cartId = useCartStore((s) => s.cartId);
   const items = useCartStore((s) => s.items);
   const router = useRouter();
@@ -33,6 +35,42 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
   const shipping = subtotal >= freeShippingThreshold ? 0 : shippingRate;
   const tax = Math.round(subtotal * taxRate * 100) / 100;
   const total = subtotal + shipping + tax;
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remaining = 3 - logoFiles.length;
+    const toUpload = Array.from(files).slice(0, remaining);
+    if (toUpload.length === 0) return;
+
+    setUploading(true);
+    setError('');
+
+    for (const file of toUpload) {
+      try {
+        const res = await fetch('/api/upload-logo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, contentType: file.type, fileSize: file.size }),
+        });
+        const data = await res.json();
+        if (!res.ok) { setError(data.error || 'Upload failed.'); continue; }
+
+        await fetch(data.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+        setLogoFiles((prev) => [...prev, { name: file.name, url: data.publicUrl }]);
+      } catch {
+        setError('Failed to upload file. Please try again.');
+      }
+    }
+
+    setUploading(false);
+    e.target.value = '';
+  };
+
+  const removeLogo = (index: number) => {
+    setLogoFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmitWorkOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +108,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
         lineTotal: item.lineTotal,
       })),
       specialInstructions: get('instructions') || undefined,
+      logoUrls: logoFiles.length > 0 ? logoFiles.map((f) => f.url) : undefined,
     };
 
     const result = await submitWorkOrder(workOrderData);
@@ -247,6 +286,49 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
                   className={`${INPUT_CLS} resize-none`}
                 />
               </div>
+            </div>
+
+            {/* Logo Upload */}
+            <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 sm:p-8">
+              <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white mb-2">Logo Upload</h2>
+              <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 mb-5">
+                Upload up to 3 logo files (PNG, JPG, SVG, WebP, or PDF). Optional — you can also email them later.
+              </p>
+
+              {/* Uploaded files list */}
+              {logoFiles.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  {logoFiles.map((file, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-pbs-gray-50 dark:bg-pbs-gray-800 rounded-xl px-4 py-2.5">
+                      <FileImage className="h-4 w-4 text-pbs-red shrink-0" />
+                      <span className="text-sm text-pbs-gray-700 dark:text-pbs-gray-300 truncate flex-1">{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeLogo(i)}
+                        className="p-1 rounded-lg text-pbs-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload button */}
+              {logoFiles.length < 3 && (
+                <label className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-pbs-gray-300 dark:border-pbs-gray-600 text-sm text-pbs-gray-500 dark:text-pbs-gray-400 hover:border-pbs-red hover:text-pbs-red cursor-pointer transition-colors">
+                  <Upload className="h-4 w-4" />
+                  {uploading ? 'Uploading...' : `Choose file${logoFiles.length > 0 ? ` (${3 - logoFiles.length} remaining)` : 's'}`}
+                  <input
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.svg,.webp,.pdf"
+                    multiple
+                    onChange={handleLogoUpload}
+                    disabled={uploading}
+                    className="sr-only"
+                  />
+                </label>
+              )}
             </div>
 
           </div>

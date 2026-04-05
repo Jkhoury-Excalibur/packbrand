@@ -33,6 +33,7 @@ type OrderData = {
   notes: string;
   items: { productId: string; name: string; categoryId: string; categoryName: string; size: string; qty: number; unitPrice: number; lineTotal: number }[];
   shippingAddress: { line1: string; line2?: string; city: string; state: string; zip: string; country: string };
+  logoUrls: string[];
 };
 
 export function AdminOrderDetailClient({ order }: { order: OrderData }) {
@@ -169,6 +170,27 @@ export function AdminOrderDetailClient({ order }: { order: OrderData }) {
                 </div>
               </div>
             </div>
+
+            {/* Logo Files */}
+            {order.logoUrls.length > 0 && (
+              <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6">
+                <h3 className="text-sm font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-5">Logo Files</h3>
+                <div className="space-y-2">
+                  {order.logoUrls.map((url, i) => (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-pbs-red hover:underline"
+                    >
+                      <Download className="h-3.5 w-3.5 shrink-0" />
+                      {url.split('/').pop() || `Logo ${i + 1}`}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>
