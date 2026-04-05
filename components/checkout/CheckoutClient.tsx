@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
-import { ShoppingBag, ArrowRight, CreditCard, Lock, ChevronLeft } from 'lucide-react';
-import CardBrandLogos from '@/components/checkout/CardBrandLogos';
+import { ShoppingBag, Send } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useCartStore } from '@/lib/store/cart';
-import { initiateCheckoutPayment } from '@/lib/actions/payment';
+import { submitWorkOrder } from '@/lib/actions/work-order';
 
 const INPUT_CLS = 'w-full px-4 py-3 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors';
 const LABEL_CLS = 'block text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-2';
@@ -21,10 +21,9 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [step, setStep] = useState<'form' | 'payment'>('form');
-  const [iframeUrl, setIframeUrl] = useState('');
   const cartId = useCartStore((s) => s.cartId);
   const items = useCartStore((s) => s.items);
+  const router = useRouter();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -35,7 +34,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
   const tax = Math.round(subtotal * taxRate * 100) / 100;
   const total = subtotal + shipping + tax;
 
-  const handleContinueToPayment = async (e: React.FormEvent) => {
+  const handleSubmitWorkOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
@@ -43,7 +42,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
     const form = e.target as HTMLFormElement;
     const get = (id: string) => (form.elements.namedItem(id) as HTMLInputElement | HTMLTextAreaElement)?.value ?? '';
 
-    const checkoutData = {
+    const workOrderData = {
       cartId,
       contact: {
         firstName: get('firstName'),
@@ -73,7 +72,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
       specialInstructions: get('instructions') || undefined,
     };
 
-    const result = await initiateCheckoutPayment(checkoutData);
+    const result = await submitWorkOrder(workOrderData);
     setSubmitting(false);
 
     if ('error' in result) {
@@ -81,8 +80,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
       return;
     }
 
-    setIframeUrl(result.iframeUrl!);
-    setStep('payment');
+    router.push(`/checkout/success?order=${result.orderNumber}`);
   };
 
   if (items.length === 0) {
@@ -90,7 +88,7 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
       <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto flex flex-col items-center justify-center gap-6 py-24">
         <ShoppingBag className="h-16 w-16 text-pbs-gray-300 dark:text-pbs-gray-600" />
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-pbs-gray-900 dark:text-white">Nothing to check out</h1>
+          <h1 className="text-2xl font-bold text-pbs-gray-900 dark:text-white">Nothing to submit</h1>
           <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-2">Add items to your cart first.</p>
         </div>
         <Link href="/products">
@@ -100,7 +98,6 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
     );
   }
 
-  // ── Order Summary (shared between both steps) ──
   const orderSummary = (
     <div className="lg:sticky lg:top-24">
       <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 space-y-5">
@@ -145,79 +142,29 @@ export function CheckoutClient({ shippingRate, freeShippingThreshold, taxRate }:
           </div>
         </div>
 
-        {step === 'form' && (
-          <>
-            <Button type="submit" variant="primary" size="lg" className="w-full" disabled={submitting}>
-              {submitting ? 'Processing...' : 'Continue to Payment'}
-              {!submitting && <CreditCard className="ml-2 h-4 w-4" />}
-            </Button>
+        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={submitting}>
+          {submitting ? 'Submitting...' : 'Submit Work Order'}
+          {!submitting && <Send className="ml-2 h-4 w-4" />}
+        </Button>
 
-            <CardBrandLogos className="justify-center" />
-
-            <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 text-center leading-relaxed">
-              By placing your order, you agree to our{' '}
-              <Link href="/terms" className="text-pbs-red hover:underline font-medium">Terms</Link>
-              {' '}and{' '}
-              <Link href="/privacy" className="text-pbs-red hover:underline font-medium">Privacy Policy</Link>.
-            </p>
-          </>
-        )}
-
-        {step === 'payment' && (
-          <div className="flex items-center justify-center gap-2 text-xs text-pbs-gray-500 dark:text-pbs-gray-400">
-            <Lock className="h-3.5 w-3.5" />
-            <span>Secure payment powered by Enhanced Gateway</span>
-          </div>
-        )}
+        <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 text-center leading-relaxed">
+          By submitting your work order, you agree to our{' '}
+          <Link href="/terms" className="text-pbs-red hover:underline font-medium">Terms</Link>
+          {' '}and{' '}
+          <Link href="/privacy" className="text-pbs-red hover:underline font-medium">Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   );
 
-  // ── Step 2: Payment Iframe ──
-  if (step === 'payment') {
-    return (
-      <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => setStep('form')}
-            className="inline-flex items-center gap-1.5 text-sm text-pbs-gray-500 dark:text-pbs-gray-400 hover:text-pbs-red transition-colors mb-4"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back to Details
-          </button>
-          <h1 className="text-3xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">Complete Payment</h1>
-          <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">Enter your card details below to complete your purchase.</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2">
-            <CardBrandLogos className="mb-4" />
-            <iframe
-              src={iframeUrl}
-              className="w-full border-0 rounded-2xl bg-white dark:bg-pbs-gray-900 overflow-hidden"
-              style={{ minHeight: '750px' }}
-              title="Payment Form"
-              scrolling="no"
-              sandbox="allow-scripts allow-forms allow-same-origin allow-top-navigation"
-            />
-          </div>
-
-          {orderSummary}
-        </div>
-      </div>
-    );
-  }
-
-  // ── Step 1: Checkout Form ──
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">Checkout</h1>
-        <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">Complete your order details below.</p>
+        <h1 className="text-3xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">Submit Work Order</h1>
+        <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">Complete your work order details below.</p>
       </div>
 
-      <form onSubmit={handleContinueToPayment}>
+      <form onSubmit={handleSubmitWorkOrder}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
           {/* Left column — forms */}

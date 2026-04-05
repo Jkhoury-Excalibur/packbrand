@@ -104,7 +104,7 @@ function HomeContent() {
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/contact">
+              <Link href="/products">
                 <Button variant="gold" size="lg">
                   {t('newHeroCta1')}
                 </Button>

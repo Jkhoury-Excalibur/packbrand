@@ -28,7 +28,7 @@ export default async function OrderDetailPage({ params }: Props) {
       {/* Back + header */}
       <div>
         <Link href="/account/orders" className="inline-flex items-center gap-1.5 text-sm text-pbs-gray-500 dark:text-pbs-gray-400 hover:text-pbs-red transition-colors mb-4">
-          <ChevronLeft className="h-4 w-4" /> Back to Orders
+          <ChevronLeft className="h-4 w-4" /> Back to Work Orders
         </Link>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
           <div>
@@ -37,7 +37,7 @@ export default async function OrderDetailPage({ params }: Props) {
               <StatusBadge status={status} />
             </div>
             <p className="text-sm text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">
-              Placed on {new Date(order.createdAt).toLocaleDateString()}
+              Submitted on {new Date(order.createdAt).toLocaleDateString()}
             </p>
           </div>
           <a
@@ -51,7 +51,7 @@ export default async function OrderDetailPage({ params }: Props) {
 
       {/* Timeline */}
       <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 sm:p-8">
-        <h2 className="text-sm font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-6">Order Status</h2>
+        <h2 className="text-sm font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-6">Work Order Status</h2>
         <OrderTimeline status={status} />
         {order.trackingNumber && status !== 'Pending' && status !== 'Processing' && (
           <div className="mt-6 pt-5 border-t border-pbs-gray-100 dark:border-pbs-gray-800 flex items-center gap-2 text-sm">
@@ -66,7 +66,7 @@ export default async function OrderDetailPage({ params }: Props) {
 
         {/* Order items */}
         <div className="lg:col-span-2 bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6">
-          <h2 className="text-sm font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-5">Order Items</h2>
+          <h2 className="text-sm font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-5">Work Order Items</h2>
           <div className="space-y-4">
             {order.items.map((item, i) => (
               <div key={i} className="flex gap-4 items-start">

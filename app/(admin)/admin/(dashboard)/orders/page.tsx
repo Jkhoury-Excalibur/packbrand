@@ -18,7 +18,6 @@ export default async function OrdersPage() {
     date: new Date(o.createdAt).toLocaleDateString(),
     total: o.total,
     status: o.status,
-    paymentStatus: o.paymentStatus || 'pending',
   }));
 
   return <AdminOrdersClient orders={orders} />;

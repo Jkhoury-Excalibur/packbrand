@@ -18,7 +18,7 @@ import { authClient } from '@/lib/auth-client';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Overview',   icon: LayoutDashboard },
-  { href: '/admin/orders',    label: 'Orders',     icon: ShoppingCart     },
+  { href: '/admin/orders',    label: 'Work Orders', icon: ShoppingCart     },
   { href: '/admin/users',     label: 'Customers',  icon: Users            },
   { href: '/admin/reviews',   label: 'Reviews',    icon: Star             },
   { href: '/admin/staff',     label: 'Staff',      icon: UserCheck        },

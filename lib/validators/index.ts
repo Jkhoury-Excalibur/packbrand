@@ -117,19 +117,10 @@ export const checkoutSchema = z.object({
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
-export const paymentStatusSchema = z.enum([
-  'pending',
-  'paid',
-  'failed',
-  'refunded',
-  'voided',
-]);
-
 export const updateOrderSchema = z.object({
   status: orderStatusSchema.optional(),
   trackingNumber: z.string().optional(),
   notes: z.string().optional(),
-  paymentStatus: paymentStatusSchema.optional(),
 });
 
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;

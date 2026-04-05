@@ -58,13 +58,13 @@ export default function OrderTrackingPage() {
         </div>
         <div className="relative z-10">
           <span className="inline-block bg-white/15 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest border border-white/10 mb-5">
-            Order Tracking
+            Work Order Tracking
           </span>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
-            Track Your Order
+            Track Your Work Order
           </h1>
           <p className="text-white/80 text-base max-w-md leading-relaxed">
-            Enter your order number to see the current status of your custom packaging order.
+            Enter your work order number to see the current status of your custom packaging order.
           </p>
         </div>
       </div>
@@ -78,16 +78,16 @@ export default function OrderTrackingPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Enter order number (e.g. ORD-1021)"
+              placeholder="Enter work order number (e.g. WO-1021)"
               className="w-full pl-11 pr-4 py-3.5 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors"
             />
           </div>
           <Button type="submit" variant="primary" size="lg" disabled={!query.trim() || searching}>
-            {searching ? 'Searching...' : 'Track Order'}
+            {searching ? 'Searching...' : 'Track Work Order'}
           </Button>
         </form>
         <p className="text-xs text-pbs-gray-400 mt-3">
-          Your order number was included in your confirmation email. Format: ORD-XXXX
+          Your work order number was included in your confirmation email. Format: WO-XXXX
         </p>
       </div>
 
@@ -100,9 +100,9 @@ export default function OrderTrackingPage() {
             </div>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-pbs-gray-900 dark:text-white">Order Not Found</h2>
+            <h2 className="text-lg font-bold text-pbs-gray-900 dark:text-white">Work Order Not Found</h2>
             <p className="text-sm text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">
-              We couldn&apos;t find an order with that number. Double-check the order number and try again, or contact our team for help.
+              We couldn&apos;t find a work order with that number. Double-check the number and try again, or contact our team for help.
             </p>
           </div>
           <a
@@ -153,7 +153,7 @@ export default function OrderTrackingPage() {
           {/* Order details */}
           <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 sm:p-8">
             <h3 className="text-sm font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-5">
-              Order Details
+              Work Order Details
             </h3>
 
             <div className="flex gap-4 items-start">
@@ -191,7 +191,7 @@ export default function OrderTrackingPage() {
 
           <div className="bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 text-center">
             <p className="text-sm text-pbs-gray-500 dark:text-pbs-gray-400">
-              Need help with your order? Reach us at{' '}
+              Need help with your work order? Reach us at{' '}
               <a
                 href="https://wa.me/15513893188"
                 target="_blank"

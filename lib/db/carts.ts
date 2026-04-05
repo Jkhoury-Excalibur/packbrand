@@ -8,7 +8,7 @@ export type DbCart = {
   cartId: string;
   customerId?: string;
   items: CartItem[] | CreateOrderInput['items'];
-  // Filled at checkout:
+  // Filled at submission:
   contact?: {
     firstName: string;
     lastName: string;
@@ -29,8 +29,7 @@ export type DbCart = {
   shipping?: number;
   tax?: number;
   total?: number;
-  transactionId?: string;
-  status: 'active' | 'checkout' | 'completed' | 'failed';
+  status: 'active' | 'submitted' | 'completed';
   orderNumber?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -76,14 +75,8 @@ export async function getCart(cartId: string) {
   return c.findOne({ cartId });
 }
 
-/** Get cart by transactionId (for webhook lookup). */
-export async function getCartByTransactionId(transactionId: string) {
-  const c = await col();
-  return c.findOne({ transactionId });
-}
-
-/** Attach checkout data to the cart when user submits the form. */
-export async function updateCartCheckout(
+/** Attach submission data to the cart when user submits the work order form. */
+export async function updateCartSubmission(
   cartId: string,
   data: {
     contact: DbCart['contact'];
@@ -94,7 +87,6 @@ export async function updateCartCheckout(
     shipping: number;
     tax: number;
     total: number;
-    transactionId: string;
     customerId?: string;
   },
 ) {
@@ -104,27 +96,18 @@ export async function updateCartCheckout(
     {
       $set: {
         ...data,
-        status: 'checkout' as const,
+        status: 'submitted' as const,
         updatedAt: new Date(),
       },
     },
   );
 }
 
-/** Mark cart as completed after order is created. */
+/** Mark cart as completed after work order is created. */
 export async function markCartCompleted(cartId: string, orderNumber: string) {
   const c = await col();
   return c.updateOne(
     { cartId },
     { $set: { status: 'completed' as const, orderNumber, updatedAt: new Date() } },
-  );
-}
-
-/** Mark cart as failed after payment failure. */
-export async function markCartFailed(cartId: string) {
-  const c = await col();
-  return c.updateOne(
-    { cartId },
-    { $set: { status: 'failed' as const, updatedAt: new Date() } },
   );
 }

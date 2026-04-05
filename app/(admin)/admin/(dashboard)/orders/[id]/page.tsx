@@ -25,11 +25,6 @@ export default async function AdminOrderDetailPage({ params }: Props) {
     notes: order.notes || '',
     items: order.items,
     shippingAddress: order.shippingAddress,
-    paymentStatus: order.paymentStatus || 'pending',
-    paymentId: order.paymentId || '',
-    paymentAuthCode: order.paymentAuthCode || '',
-    paymentMethod: order.paymentMethod || null,
-    transactionId: order.transactionId || '',
   };
 
   return <AdminOrderDetailClient order={serialized} />;

@@ -38,8 +38,8 @@ export function OrdersListClient({ orders }: { orders: OrderRow[] }) {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">My Orders</h1>
-        <p className="text-sm text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">{orders.length} orders total</p>
+        <h1 className="text-2xl font-bold text-pbs-gray-900 dark:text-white tracking-tight">My Work Orders</h1>
+        <p className="text-sm text-pbs-gray-500 dark:text-pbs-gray-400 mt-1">{orders.length} work orders total</p>
       </div>
 
       {/* Status tabs */}
@@ -64,7 +64,7 @@ export function OrdersListClient({ orders }: { orders: OrderRow[] }) {
       <div className="space-y-3">
         {filtered.length === 0 ? (
           <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-12 text-center text-pbs-gray-400">
-            No orders in this category.
+            No work orders in this category.
           </div>
         ) : (
           filtered.map((order) => (

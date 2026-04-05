@@ -6,24 +6,7 @@ import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminTable } from '@/components/admin/AdminTable';
 import { StatusBadge } from '@/components/admin/StatusBadge';
-import type { OrderStatus, PaymentStatus } from '@/lib/types/order';
-import { cn } from '@/lib/utils/cn';
-
-const PAYMENT_STYLES: Record<PaymentStatus, string> = {
-  pending:  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-  paid:     'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  failed:   'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  refunded: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-  voided:   'bg-pbs-gray-100 text-pbs-gray-500 dark:bg-pbs-gray-800 dark:text-pbs-gray-400',
-};
-
-const PAYMENT_LABELS: Record<PaymentStatus, string> = {
-  pending: 'Unpaid',
-  paid: 'Paid',
-  failed: 'Failed',
-  refunded: 'Refunded',
-  voided: 'Voided',
-};
+import type { OrderStatus } from '@/lib/types/order';
 
 const PAGE_SIZE = 25;
 
@@ -38,7 +21,6 @@ type OrderRow = {
   date: string;
   total: number;
   status: string;
-  paymentStatus: PaymentStatus;
 };
 
 const STATUS_TABS: { key: OrderStatus | 'All'; label: string }[] = [
@@ -89,11 +71,6 @@ export function AdminOrdersClient({ orders }: { orders: OrderRow[] }) {
     { key: 'date',     header: 'Date',      render: (o: OrderRow) => <span className="text-pbs-gray-500 dark:text-pbs-gray-400">{o.date}</span> },
     { key: 'total',    header: 'Total',     render: (o: OrderRow) => <span className="font-semibold">${o.total.toLocaleString()}</span> },
     { key: 'status',   header: 'Status',    render: (o: OrderRow) => <StatusBadge status={o.status as OrderStatus} /> },
-    { key: 'payment',  header: 'Payment',   render: (o: OrderRow) => (
-      <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold', PAYMENT_STYLES[o.paymentStatus])}>
-        {PAYMENT_LABELS[o.paymentStatus]}
-      </span>
-    )},
     { key: 'actions',  header: '',          render: (o: OrderRow) => (
       <Link href={`/admin/orders/${o.id}`} className="text-xs font-medium text-pbs-red hover:underline">View</Link>
     )},
@@ -101,7 +78,7 @@ export function AdminOrdersClient({ orders }: { orders: OrderRow[] }) {
 
   return (
     <>
-      <AdminHeader title="Orders" subtitle={`${filtered.length} order${filtered.length !== 1 ? 's' : ''} found`} />
+      <AdminHeader title="Work Orders" subtitle={`${filtered.length} work order${filtered.length !== 1 ? 's' : ''} found`} />
 
       <main className="flex-1 p-6 space-y-5 overflow-auto">
         <div className="flex flex-col sm:flex-row gap-3">
@@ -110,12 +87,11 @@ export function AdminOrdersClient({ orders }: { orders: OrderRow[] }) {
               <button
                 key={key}
                 onClick={() => handleFilterChange(key)}
-                className={cn(
-                  'px-3 py-1.5 rounded-xl text-sm font-medium transition-colors',
+                className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
                   activeStatus === key
                     ? 'bg-pbs-red text-white'
-                    : 'text-pbs-gray-500 dark:text-pbs-gray-400 hover:text-pbs-gray-900 dark:hover:text-white',
-                )}
+                    : 'text-pbs-gray-500 dark:text-pbs-gray-400 hover:text-pbs-gray-900 dark:hover:text-white'
+                }`}
               >
                 {label}
               </button>
@@ -126,7 +102,7 @@ export function AdminOrdersClient({ orders }: { orders: OrderRow[] }) {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-pbs-gray-400" />
             <input
               type="search"
-              placeholder="Search orders…"
+              placeholder="Search work orders…"
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-900 text-sm text-pbs-gray-900 dark:text-white focus:outline-none focus:border-pbs-red transition-colors"
@@ -135,7 +111,7 @@ export function AdminOrdersClient({ orders }: { orders: OrderRow[] }) {
         </div>
 
         <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800">
-          <AdminTable columns={columns as never[]} rows={paginated as never[]} emptyMessage="No orders match your filters." />
+          <AdminTable columns={columns as never[]} rows={paginated as never[]} emptyMessage="No work orders match your filters." />
         </div>
 
         {/* Pagination */}

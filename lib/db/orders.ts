@@ -1,14 +1,10 @@
 import { ObjectId } from 'mongodb';
 import { getDb } from './client';
-import { generateTransactionId } from '../utils/transaction';
 import type { CreateOrderInput, UpdateOrderInput } from '../validators';
-import type { PaymentStatus } from '../types/order';
-import type { DbCart } from './carts';
 
 export type DbOrder = {
   _id: ObjectId;
   orderNumber: string;
-  transactionId: string;
   customerId?: string;
   contact: CreateOrderInput['contact'];
   shippingAddress: CreateOrderInput['shippingAddress'];
@@ -18,12 +14,6 @@ export type DbOrder = {
   tax: number;
   total: number;
   status: string;
-  paymentStatus: PaymentStatus;
-  paymentId?: string;
-  paymentAuthCode?: string;
-  paymentMethod?: { cardType: string; lastFour: string };
-  paymentToken?: string;
-  paymentResponse?: Record<string, unknown>;
   trackingNumber?: string;
   notes?: string;
   specialInstructions?: string;
@@ -43,7 +33,7 @@ async function generateOrderNumber(): Promise<string> {
     { $inc: { seq: 1 } },
     { upsert: true, returnDocument: 'after' }
   );
-  return `ORD-${1000 + (result?.seq ?? 1)}`;
+  return `WO-${1000 + (result?.seq ?? 1)}`;
 }
 
 export async function createOrder(
@@ -61,12 +51,9 @@ export async function createOrder(
   const total = subtotal + shipping + tax;
   const orderNumber = await generateOrderNumber();
 
-  const transactionId = generateTransactionId();
-
   const doc: DbOrder = {
     _id: new ObjectId(),
     orderNumber,
-    transactionId,
     customerId,
     contact: data.contact,
     shippingAddress: data.shippingAddress,
@@ -76,52 +63,7 @@ export async function createOrder(
     tax,
     total,
     status: 'Pending',
-    paymentStatus: 'pending',
     specialInstructions: data.specialInstructions,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  await c.insertOne(doc);
-  return doc;
-}
-
-/** Create an order from a completed cart (called by webhook after payment success). */
-export async function createOrderFromCart(
-  cart: DbCart,
-  paymentData: {
-    paymentStatus: PaymentStatus;
-    paymentId?: string;
-    paymentAuthCode?: string;
-    paymentMethod?: { cardType: string; lastFour: string };
-    paymentToken?: string;
-    paymentResponse?: Record<string, unknown>;
-  },
-) {
-  const c = await col();
-  const now = new Date();
-  const orderNumber = await generateOrderNumber();
-
-  const doc: DbOrder = {
-    _id: new ObjectId(),
-    orderNumber,
-    transactionId: cart.transactionId!,
-    customerId: cart.customerId,
-    contact: cart.contact!,
-    shippingAddress: cart.shippingAddress!,
-    items: cart.items as CreateOrderInput['items'],
-    subtotal: cart.subtotal!,
-    shipping: cart.shipping!,
-    tax: cart.tax!,
-    total: cart.total!,
-    status: 'Pending',
-    paymentStatus: paymentData.paymentStatus,
-    paymentId: paymentData.paymentId,
-    paymentAuthCode: paymentData.paymentAuthCode,
-    paymentMethod: paymentData.paymentMethod,
-    paymentToken: paymentData.paymentToken,
-    paymentResponse: paymentData.paymentResponse,
-    specialInstructions: cart.specialInstructions,
     createdAt: now,
     updatedAt: now,
   };
@@ -156,35 +98,10 @@ export async function updateOrder(id: string, data: UpdateOrderInput) {
   if (data.status) update.status = data.status;
   if (data.trackingNumber !== undefined) update.trackingNumber = data.trackingNumber;
   if (data.notes !== undefined) update.notes = data.notes;
-  if (data.paymentStatus) update.paymentStatus = data.paymentStatus;
 
   return c.updateOne(
     { _id: new ObjectId(id) },
     { $set: update }
-  );
-}
-
-export async function getOrderByTransactionId(transactionId: string) {
-  const c = await col();
-  return c.findOne({ transactionId });
-}
-
-export async function updateOrderPayment(
-  transactionId: string,
-  data: {
-    paymentStatus: PaymentStatus;
-    status?: string;
-    paymentId?: string;
-    paymentAuthCode?: string;
-    paymentMethod?: { cardType: string; lastFour: string };
-    paymentToken?: string;
-    paymentResponse?: Record<string, unknown>;
-  },
-) {
-  const c = await col();
-  return c.updateOne(
-    { transactionId, paymentStatus: 'pending' },
-    { $set: { ...data, updatedAt: new Date() } },
   );
 }
 

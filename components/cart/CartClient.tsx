@@ -101,7 +101,7 @@ export function CartClient({ shippingRate, freeShippingThreshold }: Props) {
 
             <Link href="/checkout" className="block">
               <Button variant="primary" size="lg" className="w-full">
-                Proceed to Checkout
+                Continue to Work Order
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>

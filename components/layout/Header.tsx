@@ -120,7 +120,7 @@ export function Header() {
                 <span className="text-xl tracking-tight text-pbs-gray-900 dark:text-white">
                   <span className="font-bold text-pbs-red">PACK</span>{' '}
                   <span className="font-bold">BRAND</span>{' '}
-                  <span className="text-sm font-medium text-pbs-gray-400 dark:text-pbs-gray-500">SOLUTIONS</span>
+                  <span className="font-bold text-pbs-red">SOLUTIONS</span>
                 </span>
               </Link>
             </div>

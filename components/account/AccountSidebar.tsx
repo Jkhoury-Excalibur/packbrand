@@ -8,7 +8,7 @@ import { authClient } from '@/lib/auth-client';
 
 const navItems = [
   { href: '/account',           label: 'Overview',    icon: LayoutDashboard, exact: true  },
-  { href: '/account/orders',    label: 'My Orders',   icon: ShoppingCart,    exact: false },
+  { href: '/account/orders',    label: 'My Work Orders', icon: ShoppingCart, exact: false },
   { href: '/account/profile',   label: 'Profile',     icon: User,            exact: true  },
   { href: '/account/addresses', label: 'Addresses',   icon: MapPin,          exact: true  },
 ];

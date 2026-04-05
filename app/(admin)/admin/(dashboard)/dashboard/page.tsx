@@ -26,7 +26,7 @@ export default async function DashboardPage() {
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatCard
-            title="Total Orders"
+            title="Total Work Orders"
             value={String(stats.totalOrders)}
             icon={ShoppingCart}
           />
@@ -58,7 +58,7 @@ export default async function DashboardPage() {
           {/* Recent Orders */}
           <div className="xl:col-span-2 bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800">
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-pbs-gray-100 dark:border-pbs-gray-800">
-              <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white">Recent Orders</h2>
+              <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white">Recent Work Orders</h2>
               <Link href="/admin/orders" className="flex items-center gap-1 text-xs font-medium text-pbs-red hover:gap-2 transition-all">
                 View all <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -102,7 +102,7 @@ export default async function DashboardPage() {
               <div className="space-y-2.5">
                 <Link href="/admin/orders" className="block">
                   <Button variant="primary" size="sm" className="w-full justify-start gap-2">
-                    <Plus className="h-4 w-4" /> New Order
+                    <Plus className="h-4 w-4" /> New Work Order
                   </Button>
                 </Link>
                 <Link href="/admin/products/new" className="block">
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
 
             {/* Order Status Breakdown */}
             <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 flex-1">
-              <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white mb-4">Order Status</h2>
+              <h2 className="text-base font-bold text-pbs-gray-900 dark:text-white mb-4">Work Order Status</h2>
               <div className="space-y-3.5">
                 {[
                   { label: 'Pending', count: stats.pending },

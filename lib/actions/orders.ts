@@ -1,28 +1,10 @@
 'use server';
 
 import { updateOrder as dbUpdateOrder, getOrderById } from '../db/orders';
-import { getCart } from '../db/carts';
 import { updateOrderSchema } from '../validators';
 import { requireAdmin } from '../auth-helpers';
 import { sendEmail } from '../email';
 import { escapeHtml } from '../utils/escapeHtml';
-
-/** Public: check payment status by order number (no auth required). */
-export async function getOrderPaymentStatus(orderNumber: string) {
-  const order = await getOrderById(orderNumber);
-  if (!order) return { paymentStatus: 'not_found' as const };
-  return { paymentStatus: order.paymentStatus };
-}
-
-/** Public: check checkout session status by cartId (no auth required). */
-export async function getCheckoutStatus(cartId: string) {
-  const cart = await getCart(cartId);
-  if (!cart) return { status: 'not_found' as const };
-  return {
-    status: cart.status,
-    orderNumber: cart.orderNumber,
-  };
-}
 
 export async function updateOrderAction(orderId: string, formData: unknown) {
   await requireAdmin();
@@ -40,12 +22,12 @@ export async function updateOrderAction(orderId: string, formData: unknown) {
     if (order) {
       await sendEmail({
         to: order.contact.email,
-        subject: `Your Order Has Shipped — ${order.orderNumber}`,
+        subject: `Your Work Order Has Shipped — ${order.orderNumber}`,
         html: `
           <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
-            <h2 style="color: #1a1a1a;">Your Order Has Shipped!</h2>
+            <h2 style="color: #1a1a1a;">Your Work Order Has Shipped!</h2>
             <p>Hi ${escapeHtml(order.contact.firstName)},</p>
-            <p>Your order <strong>${escapeHtml(order.orderNumber)}</strong> is on its way.</p>
+            <p>Your work order <strong>${escapeHtml(order.orderNumber)}</strong> is on its way.</p>
             ${order.trackingNumber ? `<p><strong>Tracking Number:</strong> ${escapeHtml(order.trackingNumber)}</p>` : ''}
             <p>Thank you for choosing PackBrand Solutions!</p>
             <p style="color: #999; font-size: 12px;">— PackBrand Solutions</p>
