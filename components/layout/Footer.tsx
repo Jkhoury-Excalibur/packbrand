@@ -1,6 +1,6 @@
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { Package, Instagram, Phone, Mail } from 'lucide-react';
+import { Package, Instagram, Phone, Mail, Linkedin } from 'lucide-react';
 
 export function Footer() {
   const t = useTranslations('Footer');
@@ -13,10 +13,10 @@ export function Footer() {
   ];
 
   const solutionLinks = [
-    { href: '/packaging' as const, label: 'Pack Brand Packaging' },
-    { href: '/direct' as const, label: 'Pack Brand Direct' },
-    { href: '/growth' as const, label: 'Pack Brand Growth' },
-    { href: '/voice' as const, label: 'Pack Brand Voice' },
+    { href: '/packaging' as const, label: t('solPackaging') },
+    { href: '/direct' as const, label: t('solDirect') },
+    { href: '/growth' as const, label: t('solGrowth') },
+    { href: '/voice' as const, label: t('solVoice') },
   ];
 
   return (
@@ -71,7 +71,7 @@ export function Footer() {
           {/* Column 3: Solutions */}
           <div>
             <h3 className="text-xs font-bold text-pbs-gray-100 uppercase tracking-wider mb-4">
-              Solutions
+              {t('solutionsTitle')}
             </h3>
             <ul className="space-y-2.5">
               {solutionLinks.map((link) => (
@@ -123,6 +123,15 @@ export function Footer() {
                 aria-label={t('followInstagram')}
               >
                 <Instagram className="h-5 w-5" />
+              </a>
+              <a
+                href="https://www.linkedin.com/company/packbrandsolutions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg bg-pbs-gray-800 text-pbs-gray-400 hover:bg-pbs-red hover:text-white transition-colors"
+                aria-label="Follow Pack Brand Solutions on LinkedIn"
+              >
+                <Linkedin className="h-5 w-5" />
               </a>
             </div>
           </div>

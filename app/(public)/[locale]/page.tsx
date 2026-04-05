@@ -1,4 +1,4 @@
-import { Package, Mic2, TrendingUp, RefreshCw, Check, Sparkles } from 'lucide-react';
+import { Package, Mic2, TrendingUp, RefreshCw, Check, Sparkles, Quote, Layers, MapPin, ShieldCheck, Globe, ArrowRight } from 'lucide-react';
 import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
@@ -23,6 +23,7 @@ function HomeContent() {
       label: 'PACKAGING',
       headingKey: 'packagesTagline' as const,
       detailKey: 'packagesDesc' as const,
+      ctaKey: 'packagingCta' as const,
       icon: Package,
       gradient: 'linear-gradient(to bottom right, #A3303F, #8B2635, #5E1A24)',
       iconColor: '#8B2635',
@@ -33,6 +34,7 @@ function HomeContent() {
       label: 'DIRECT',
       headingKey: 'directTagline' as const,
       detailKey: 'directDesc' as const,
+      ctaKey: 'directCta' as const,
       icon: RefreshCw,
       gradient: 'linear-gradient(to bottom right, #4D6B35, #3D5229, #2A391C)',
       iconColor: '#3D5229',
@@ -43,6 +45,7 @@ function HomeContent() {
       label: 'GROWTH',
       headingKey: 'growthTagline' as const,
       detailKey: 'growthDesc' as const,
+      ctaKey: 'growthCta' as const,
       icon: TrendingUp,
       gradient: 'linear-gradient(to bottom right, #D9A43A, #C8912A, #9A6F1E)',
       iconColor: '#C8912A',
@@ -53,6 +56,7 @@ function HomeContent() {
       label: 'VOICE',
       headingKey: 'voiceTagline' as const,
       detailKey: 'voiceDesc' as const,
+      ctaKey: 'voiceCta' as const,
       icon: Mic2,
       gradient: 'linear-gradient(to bottom right, #5C4278, #4A3463, #33234A)',
       iconColor: '#4A3463',
@@ -61,29 +65,29 @@ function HomeContent() {
     },
   ];
 
-  const brands = [
-    { name: 'Máxima', sub: 'Empanadas' },
-    { name: 'BLOSSOM', sub: 'COSMETICS' },
-    { name: 'LA·UNA', sub: '' },
-    { name: 'PRESTIGE', sub: '' },
-    { name: 'Merina', sub: '' },
+  const valueProps = [
+    { icon: Layers, titleKey: 'valueTitle1' as const, descKey: 'valueDesc1' as const },
+    { icon: MapPin, titleKey: 'valueTitle2' as const, descKey: 'valueDesc2' as const },
+    { icon: ShieldCheck, titleKey: 'valueTitle3' as const, descKey: 'valueDesc3' as const },
+    { icon: Globe, titleKey: 'valueTitle4' as const, descKey: 'valueDesc4' as const },
   ];
 
-  const whyImages = [
-    { label: t('cupsCategoryName'), gradient: 'from-pbs-red to-pbs-red-dark' },
-    { label: t('bagsCategoryName'), gradient: 'from-pbs-gray-900 to-pbs-gray-700' },
-    { label: t('containersCategoryName'), gradient: 'from-pbs-gold-dark to-pbs-gold' },
-    { label: t('boxesCategoryName'), gradient: 'from-pbs-red-light to-pbs-red' },
+  const testimonials = [
+    { quoteKey: 'testimonial1Quote' as const, authorKey: 'testimonial1Author' as const },
+    { quoteKey: 'testimonial2Quote' as const, authorKey: 'testimonial2Author' as const },
+    { quoteKey: 'testimonial3Quote' as const, authorKey: 'testimonial3Author' as const },
+    { quoteKey: 'testimonial4Quote' as const, authorKey: 'testimonial4Author' as const },
+    { quoteKey: 'testimonial5Quote' as const, authorKey: 'testimonial5Author' as const },
+    { quoteKey: 'testimonial6Quote' as const, authorKey: 'testimonial6Author' as const },
   ];
 
   return (
     <div className="text-pbs-gray-900 dark:text-pbs-gray-100">
 
       {/* ================================================================ */}
-      {/*  HERO — full-bleed section, text left, photo right (no box)      */}
+      {/*  HERO                                                            */}
       {/* ================================================================ */}
       <section className="py-14 lg:py-20 relative overflow-hidden bg-gradient-to-br from-pbs-gray-50 via-white to-pbs-gray-100 dark:from-pbs-gray-950 dark:via-pbs-gray-900 dark:to-pbs-gray-950">
-        {/* Ghosted background elements */}
         <div className="absolute top-0 right-0 opacity-[0.04] dark:opacity-[0.06] transform translate-x-24 -translate-y-12 pointer-events-none select-none" aria-hidden="true">
           <Package className="h-[28rem] w-[28rem]" strokeWidth={0.75} />
         </div>
@@ -104,9 +108,10 @@ function HomeContent() {
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/products">
+              <Link href="/contact">
                 <Button variant="gold" size="lg">
                   {t('newHeroCta1')}
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/packaging">
@@ -132,35 +137,13 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* ================================================================ */}
-      {/*  BRAND LOGOS STRIP                                               */}
-      {/* ================================================================ */}
-      <section className="bg-pbs-gray-900 dark:bg-pbs-black border-y border-pbs-gray-800">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 py-5 flex flex-wrap items-center justify-center gap-8 sm:gap-12 lg:gap-16">
-          {brands.map((brand) => (
-            <div key={brand.name} className="text-center leading-none opacity-50 hover:opacity-80 transition-opacity duration-200">
-              <div className="text-lg font-bold text-white tracking-wide">
-                {brand.name}
-              </div>
-              {brand.sub && (
-                <div className="text-[9px] font-semibold tracking-[0.18em] text-pbs-gray-400 uppercase mt-0.5">
-                  {brand.sub}
-                </div>
-              )}
-            </div>
-          ))}
-          <span className="text-pbs-gray-500 font-semibold text-base opacity-50">
-            {t('brandsMore')}
-          </span>
-        </div>
-      </section>
+      {/* SOCIAL PROOF BAR — hidden until client provides real logos/brands */}
 
       {/* ================================================================ */}
       {/*  PLATFORM SECTION                                                */}
       {/* ================================================================ */}
       <section className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-20">
 
-        {/* Section title with ruled lines */}
         <div className="text-center mb-12">
           <div className="flex items-center gap-5 mb-4">
             <div className="flex-1 h-px bg-pbs-gray-300 dark:bg-pbs-gray-700" />
@@ -174,16 +157,14 @@ function HomeContent() {
           </p>
         </div>
 
-        {/* 4 platform cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {platformCards.map((card) => {
             const Icon = card.icon;
+            const isSoon = card.status === 'soon';
             return (
               <Link key={card.label} href={card.href} className="group">
-                {/* No overflow-hidden so the icon can visually straddle the diagonal */}
-                <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 h-full flex flex-col">
+                <div className={`bg-white dark:bg-pbs-gray-900 rounded-3xl shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 h-full flex flex-col ${isSoon ? 'opacity-75' : ''}`}>
 
-                  {/* Colored section — diagonal cut via clip-path */}
                   <div
                     className="rounded-t-3xl px-4 pt-5 pb-16 text-white relative overflow-hidden"
                     style={{
@@ -191,7 +172,6 @@ function HomeContent() {
                       clipPath: 'polygon(0 0, 100% 0, 100% 55%, 0 90%)',
                     }}
                   >
-                    {/* Ghosted background icon */}
                     <div className="absolute top-0 right-0 opacity-[0.12] transform translate-x-4 -translate-y-2 pointer-events-none" aria-hidden="true">
                       <Icon className="h-24 w-24" strokeWidth={1} />
                     </div>
@@ -203,15 +183,15 @@ function HomeContent() {
                       <span className="text-[1.25rem] font-extrabold uppercase tracking-wider leading-tight">
                         {card.label}
                       </span>
-                      {card.status === 'soon' && (
-                        <span className="text-[9px] font-semibold opacity-70 pb-0.5">
-                          (SOON)
-                        </span>
-                      )}
                     </div>
+
+                    {isSoon && (
+                      <span className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full z-10">
+                        Soon
+                      </span>
+                    )}
                   </div>
 
-                  {/* Icon — negative margin pulls it up to straddle the diagonal */}
                   <div className="flex justify-center -mt-10 relative z-10 mb-5">
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center ring-4 ring-white dark:ring-pbs-gray-900 shadow-lg"
@@ -221,13 +201,15 @@ function HomeContent() {
                     </div>
                   </div>
 
-                  {/* White body */}
-                  <div className="px-4 pb-8 flex-1">
+                  <div className="px-4 pb-6 flex-1 flex flex-col">
                     <h3 className="text-[0.9rem] font-bold text-pbs-gray-900 dark:text-white leading-snug">
                       {t(card.headingKey)}
                     </h3>
-                    <p className="mt-2 text-sm text-pbs-gray-500 dark:text-pbs-gray-400 leading-relaxed">
+                    <p className="mt-2 text-sm text-pbs-gray-500 dark:text-pbs-gray-400 leading-relaxed flex-1">
                       {t(card.detailKey)}
+                    </p>
+                    <p className="mt-4 text-sm font-semibold text-pbs-red group-hover:underline">
+                      {t(card.ctaKey)} &rarr;
                     </p>
                   </div>
 
@@ -240,38 +222,88 @@ function HomeContent() {
       </section>
 
       {/* ================================================================ */}
-      {/*  WHY BRANDS INVEST                                               */}
+      {/*  WHY CHOOSE PACK BRAND — value props                             */}
       {/* ================================================================ */}
-      <section className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pb-20">
+      <section className="bg-pbs-gray-50 dark:bg-pbs-gray-950 py-20">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
 
-        <div className="text-center mb-10">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-pbs-gray-900 dark:text-white">
+              {t('whyTitle')}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {valueProps.map((vp) => {
+              const VpIcon = vp.icon;
+              return (
+                <div key={vp.titleKey} className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 text-center hover:shadow-lg transition-shadow">
+                  <div className="flex justify-center mb-4">
+                    <div className="h-12 w-12 rounded-2xl bg-pbs-red/10 dark:bg-pbs-red/20 flex items-center justify-center">
+                      <VpIcon className="h-6 w-6 text-pbs-red" />
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-pbs-gray-900 dark:text-white text-base">{t(vp.titleKey)}</h3>
+                  <p className="mt-2 text-sm text-pbs-gray-500 dark:text-pbs-gray-400 leading-relaxed">{t(vp.descKey)}</p>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </section>
+
+      {/* ================================================================ */}
+      {/*  TESTIMONIALS                                                    */}
+      {/* ================================================================ */}
+      <section className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-20">
+
+        <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-pbs-gray-900 dark:text-white">
-            {t('whyTitle')}
+            {t('testimonialsTitle')}
           </h2>
-          <p className="mt-3 text-pbs-gray-600 dark:text-pbs-gray-400 max-w-2xl mx-auto leading-relaxed">
-            {t('whySubtitle')}
-          </p>
         </div>
 
-        {/* 4 product image placeholders — replace divs with <Image> when photos arrive */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {whyImages.map((item) => (
-            <Link key={item.label} href="/packaging">
-              <div className={`rounded-3xl overflow-hidden aspect-square relative bg-gradient-to-br ${item.gradient} shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
-                <div className="absolute inset-0 flex items-center justify-center opacity-[0.15] pointer-events-none select-none">
-                  <Package className="h-20 w-20 text-white" strokeWidth={0.75} />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <span className="text-sm font-bold text-white tracking-wide uppercase">
-                    {item.label}
-                  </span>
-                </div>
-              </div>
-            </Link>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {testimonials.map((item) => (
+            <div key={item.quoteKey} className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 flex flex-col">
+              <Quote className="h-8 w-8 text-pbs-red/20 mb-4 shrink-0" />
+              <p className="text-sm text-pbs-gray-700 dark:text-pbs-gray-300 leading-relaxed italic flex-1">
+                &ldquo;{t(item.quoteKey)}&rdquo;
+              </p>
+              <p className="mt-5 text-sm font-bold text-pbs-gray-900 dark:text-white">
+                {t(item.authorKey)}
+              </p>
+            </div>
           ))}
         </div>
 
+      </section>
+
+      {/* ================================================================ */}
+      {/*  CLOSING CTA BANNER                                             */}
+      {/* ================================================================ */}
+      <section className="bg-gradient-to-br from-pbs-red via-pbs-red-dark to-pbs-black relative overflow-hidden">
+        <div className="absolute top-0 right-0 opacity-[0.06] transform translate-x-20 -translate-y-10 pointer-events-none select-none" aria-hidden="true">
+          <Package className="h-80 w-80" strokeWidth={0.75} />
+        </div>
+
+        <div className="max-w-3xl mx-auto px-6 sm:px-8 py-16 sm:py-20 text-center relative z-10">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+            {t('closingTitle')}
+          </h2>
+          <p className="mt-4 text-white/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
+            {t('closingSub')}
+          </p>
+          <div className="mt-8">
+            <Link href="/contact">
+              <Button variant="gold" size="lg">
+                {t('closingCta')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
       </section>
 
     </div>
