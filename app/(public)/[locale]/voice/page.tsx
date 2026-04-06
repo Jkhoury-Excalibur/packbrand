@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { setRequestLocale } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import { VoiceWaitlistForm } from '@/components/shared/VoiceWaitlistForm';
 
 // Purple brand colors — matches the VOICE card on the homepage
@@ -28,47 +29,25 @@ export default async function VoicePage({ params }: Props) {
 }
 
 function VoiceContent() {
+  const t = useTranslations('Voice');
+
   const features = [
-    {
-      icon: Clock,
-      title: '24/7 Availability',
-      desc: 'Your phone gets answered every time — during the lunch rush, late nights, holidays, and every hour in between.',
-    },
-    {
-      icon: Phone,
-      title: 'Full Order Taking',
-      desc: 'Understands your full menu, handles modifications, and reads the order back for confirmation before sending it to your kitchen.',
-    },
-    {
-      icon: Languages,
-      title: 'Bilingual by Default',
-      desc: 'Handles calls in English and Spanish seamlessly — no switching, no delays, just natural conversation.',
-    },
+    { icon: Clock, titleKey: 'feat1Title' as const, descKey: 'feat1Desc' as const },
+    { icon: Phone, titleKey: 'feat2Title' as const, descKey: 'feat2Desc' as const },
+    { icon: Languages, titleKey: 'feat3Title' as const, descKey: 'feat3Desc' as const },
   ];
 
   const steps = [
-    {
-      number: '01',
-      title: 'Customer Calls',
-      desc: 'A customer calls your restaurant number. Pack Brand Voice picks up instantly, every time.',
-    },
-    {
-      number: '02',
-      title: 'AI Takes the Order',
-      desc: 'The voice agent greets them with your brand name, walks through the menu, and handles any modifications.',
-    },
-    {
-      number: '03',
-      title: 'Sent to Kitchen',
-      desc: 'The confirmed order goes straight to your kitchen — no human relay, no mistakes, no delay.',
-    },
+    { number: '01', titleKey: 'step1Title' as const, descKey: 'step1Desc' as const },
+    { number: '02', titleKey: 'step2Title' as const, descKey: 'step2Desc' as const },
+    { number: '03', titleKey: 'step3Title' as const, descKey: 'step3Desc' as const },
   ];
 
   const benefits = [
-    { stat: '0', label: 'Missed calls' },
-    { stat: '24/7', label: 'Always on' },
-    { stat: '2×', label: 'Faster than hold' },
-    { stat: '$0', label: 'Extra staff cost' },
+    { statKey: 'stat1' as const, labelKey: 'stat1Label' as const },
+    { statKey: 'stat2' as const, labelKey: 'stat2Label' as const },
+    { statKey: 'stat3' as const, labelKey: 'stat3Label' as const },
+    { statKey: 'stat4' as const, labelKey: 'stat4Label' as const },
   ];
 
   return (
@@ -97,23 +76,21 @@ function VoiceContent() {
           <div className="relative z-10">
             <div className="flex flex-wrap items-center gap-3 mb-6">
               <span className="inline-block bg-white/15 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest backdrop-blur-sm border border-white/10">
-                Pack Brand Voice
+                {t('badge')}
               </span>
               <span className="inline-block bg-pbs-gold/20 text-pbs-gold px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-pbs-gold/30">
-                Coming Soon
+                {t('comingSoon')}
               </span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-4">
-              Orders Answered,
+              {t('heroTitle1')}
               <br />
-              <span className="text-pbs-gold">Automatically.</span>
+              <span className="text-pbs-gold">{t('heroTitle2')}</span>
             </h1>
 
             <p className="text-white/80 text-lg sm:text-xl max-w-lg leading-relaxed">
-              An AI voice agent that picks up every call, takes the full order,
-              and sends it to your kitchen — 24/7, in English and Spanish.
-              Never miss another order.
+              {t('heroDesc')}
             </p>
           </div>
 
@@ -122,14 +99,14 @@ function VoiceContent() {
               href="#voice-waitlist"
               className="inline-flex items-center gap-2 bg-pbs-gold hover:bg-pbs-gold-dark text-pbs-black font-bold px-7 py-3.5 rounded-xl transition-colors text-base"
             >
-              Join the Waitlist
+              {t('heroCta1')}
               <ArrowRight className="h-4 w-4" />
             </a>
             <a
               href="#voice-waitlist"
               className="inline-flex items-center gap-2 bg-white/10 text-white font-semibold px-7 py-3.5 rounded-xl border border-white/20 hover:bg-white/20 hover:border-white/40 transition-colors text-base"
             >
-              Get Early Access
+              {t('heroCta2')}
             </a>
           </div>
         </div>
@@ -144,16 +121,16 @@ function VoiceContent() {
 
           <div className="relative z-10">
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: PURPLE_MID }}>
-              Never Miss a Call
+              {t('neverMissLabel')}
             </span>
             <div className="mt-4 grid grid-cols-2 gap-4">
               {benefits.map((b) => (
-                <div key={b.label}>
+                <div key={b.labelKey}>
                   <div className="text-3xl font-black tracking-tight text-pbs-gray-900 dark:text-white">
-                    {b.stat}
+                    {t(b.statKey)}
                   </div>
                   <div className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 mt-0.5">
-                    {b.label}
+                    {t(b.labelKey)}
                   </div>
                 </div>
               ))}
@@ -162,8 +139,7 @@ function VoiceContent() {
 
           <div className="relative z-10 mt-4 pt-4 border-t border-pbs-gray-100 dark:border-pbs-gray-800">
             <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 leading-relaxed">
-              Every missed call is a lost order. Pack Brand Voice answers
-              instantly so your revenue never sleeps.
+              {t('neverMissDesc')}
             </p>
           </div>
         </div>
@@ -178,14 +154,13 @@ function VoiceContent() {
 
           <div className="relative z-10">
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: PURPLE }}>
-              While You Sleep
+              {t('sleepLabel')}
             </span>
             <h3 className="text-2xl font-bold tracking-tight mt-3 leading-snug">
-              Your AI Agent Never Clocks Out
+              {t('sleepTitle')}
             </h3>
             <p className="text-pbs-gray-400 text-sm mt-2 leading-relaxed">
-              Calls at 11pm? Calls during the Saturday rush when your staff
-              is slammed? Answered. Every one.
+              {t('sleepDesc')}
             </p>
           </div>
 
@@ -194,7 +169,7 @@ function VoiceContent() {
             className="relative z-10 text-sm font-medium flex items-center gap-1 mt-4 hover:gap-2 transition-all"
             style={{ color: PURPLE }}
           >
-            Get Early Access
+            {t('sleepCta')}
             <ArrowRight className="h-4 w-4" />
           </a>
         </div>
@@ -205,7 +180,7 @@ function VoiceContent() {
         {features.map((feature) => {
           const Icon = feature.icon;
           return (
-            <div key={feature.title} className="col-span-1 md:col-span-1 lg:col-span-2 group">
+            <div key={feature.titleKey} className="col-span-1 md:col-span-1 lg:col-span-2 group">
               <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-pbs-gray-100 dark:border-pbs-gray-800 h-full flex flex-col min-h-[180px] relative overflow-hidden hover:-translate-y-1">
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
@@ -223,10 +198,10 @@ function VoiceContent() {
 
                   <div>
                     <h3 className="text-lg font-bold text-pbs-gray-900 dark:text-white group-hover:text-white transition-colors duration-300">
-                      {feature.title}
+                      {t(feature.titleKey)}
                     </h3>
                     <p className="text-sm text-pbs-gray-500 dark:text-pbs-gray-400 group-hover:text-white/80 mt-1.5 transition-colors duration-300 leading-relaxed">
-                      {feature.desc}
+                      {t(feature.descKey)}
                     </p>
                   </div>
                 </div>
@@ -240,7 +215,7 @@ function VoiceContent() {
         {/* ============================================================== */}
         <div className="col-span-1 md:col-span-4 lg:col-span-4 bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl p-6 sm:p-8 shadow-sm border border-pbs-gray-100 dark:border-pbs-gray-800">
           <h3 className="text-xl font-bold text-pbs-gray-900 dark:text-white mb-6">
-            How It Works
+            {t('howItWorks')}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -258,10 +233,10 @@ function VoiceContent() {
                 </div>
                 <div>
                   <h4 className="font-bold text-pbs-gray-900 dark:text-white text-sm">
-                    {step.title}
+                    {t(step.titleKey)}
                   </h4>
                   <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 mt-1 leading-relaxed">
-                    {step.desc}
+                    {t(step.descKey)}
                   </p>
                 </div>
               </div>
@@ -282,14 +257,13 @@ function VoiceContent() {
 
           <div className="relative z-10">
             <span className="text-xs font-bold text-white/60 uppercase tracking-widest">
-              Early Access
+              {t('earlyLabel')}
             </span>
             <h3 className="text-2xl font-bold tracking-tight text-white mt-2 leading-snug">
-              Be First in Line
+              {t('earlyTitle')}
             </h3>
             <p className="text-white/70 text-sm mt-3 leading-relaxed">
-              Join the waitlist and get priority onboarding, early access
-              pricing, and direct support from our team at launch.
+              {t('earlyDesc')}
             </p>
           </div>
 
@@ -297,7 +271,7 @@ function VoiceContent() {
             href="#voice-waitlist"
             className="text-pbs-gold text-sm font-medium flex items-center gap-1 mt-6 hover:gap-2 transition-all"
           >
-            Reserve Your Spot
+            {t('earlyCta')}
             <ArrowRight className="h-4 w-4" />
           </a>
         </div>
@@ -312,14 +286,13 @@ function VoiceContent() {
         {/* Form card */}
         <div className="lg:col-span-2 bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl p-8 sm:p-10 border border-pbs-gray-100 dark:border-pbs-gray-800">
           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: PURPLE_MID }}>
-            Early Access
+            {t('formBadge')}
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold text-pbs-gray-900 dark:text-white mt-2 mb-2">
-            Join the Waitlist
+            {t('formTitle')}
           </h2>
           <p className="text-pbs-gray-500 dark:text-pbs-gray-400 text-sm mb-6">
-            Pack Brand Voice is launching soon. Reserve your spot and we'll
-            reach out with early access details before we go public.
+            {t('formIntro')}
           </p>
           <VoiceWaitlistForm />
         </div>
@@ -327,29 +300,22 @@ function VoiceContent() {
         {/* Side info card */}
         <div className="bg-pbs-black rounded-3xl p-8 text-white flex flex-col justify-between">
           <div>
-            <h3 className="text-xl font-bold mb-2">What Early Access Gets You</h3>
+            <h3 className="text-xl font-bold mb-2">{t('sideTitle')}</h3>
             <p className="text-pbs-gray-400 text-sm leading-relaxed mb-8">
-              Waitlist members get first access, discounted launch pricing, and
-              hands-on setup from our team.
+              {t('sideDesc')}
             </p>
 
             <ul className="space-y-4">
-              {[
-                'Priority onboarding before public launch',
-                'Early access pricing locked in',
-                'Direct line to our AI team',
-                'Custom voice trained on your menu',
-                'Bilingual from day one',
-              ].map((item) => (
+              {(['sideItem1', 'sideItem2', 'sideItem3', 'sideItem4', 'sideItem5'] as const).map((key) => (
                 <li
-                  key={item}
+                  key={key}
                   className="flex items-center gap-2.5 text-sm text-pbs-gray-300"
                 >
                   <CheckCircle2
                     className="h-4 w-4 shrink-0"
                     style={{ color: PURPLE }}
                   />
-                  <span className="font-medium">{item}</span>
+                  <span className="font-medium">{t(key)}</span>
                 </li>
               ))}
             </ul>
@@ -357,7 +323,7 @@ function VoiceContent() {
 
           <div className="mt-8 pt-6 border-t border-pbs-gray-800">
             <p className="text-xs text-pbs-gray-500 uppercase tracking-widest font-semibold mb-3">
-              Questions? Reach us directly
+              {t('sideContact')}
             </p>
             <a
               href="https://wa.me/15513893188"
@@ -368,7 +334,7 @@ function VoiceContent() {
               <div className="h-8 w-8 rounded-lg bg-pbs-gray-800 flex items-center justify-center shrink-0">
                 <MessageCircle className="h-4 w-4 text-pbs-gold" />
               </div>
-              WhatsApp: +1 (551) 389-3188
+              {t('whatsappLine')}
             </a>
           </div>
         </div>

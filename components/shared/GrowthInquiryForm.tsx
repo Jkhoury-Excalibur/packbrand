@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { CheckCircle2 } from 'lucide-react';
 import { submitInquiry } from '@/lib/actions/inquiries';
 
@@ -24,13 +25,6 @@ const EMPTY: FormState = {
   message: '',
 };
 
-const BUDGET_OPTIONS = [
-  'Under $500 / month',
-  '$500 – $1,000 / month',
-  '$1,000 – $2,500 / month',
-  '$2,500+ / month',
-];
-
 const GOLD_MID = '#C8912A';
 const GOLD = '#D9A43A';
 
@@ -41,9 +35,17 @@ const labelCls =
   'block text-xs font-semibold text-pbs-gray-600 dark:text-pbs-gray-400 uppercase tracking-wide mb-1.5';
 
 export function GrowthInquiryForm() {
+  const t = useTranslations('Growth');
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const budgetOptions = [
+    t('formBudget1'),
+    t('formBudget2'),
+    t('formBudget3'),
+    t('formBudget4'),
+  ];
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -62,7 +64,7 @@ export function GrowthInquiryForm() {
     setSubmitting(false);
 
     if ('error' in result) {
-      setError('Please fill in all required fields.');
+      setError(t('formError'));
       return;
     }
 
@@ -80,11 +82,10 @@ export function GrowthInquiryForm() {
         </div>
         <div>
           <h2 className="text-2xl font-bold text-pbs-gray-900 dark:text-white mb-2">
-            Inquiry Sent!
+            {t('successTitle')}
           </h2>
           <p className="text-pbs-gray-500 dark:text-pbs-gray-400 max-w-sm">
-            Thanks! Our team will review your inquiry and reach out within 24
-            hours to discuss your growth strategy.
+            {t('successDesc')}
           </p>
         </div>
         <button
@@ -92,7 +93,7 @@ export function GrowthInquiryForm() {
           className="inline-flex items-center justify-center font-semibold transition-all duration-200 px-6 py-2.5 text-sm rounded-xl text-white"
           style={{ background: `linear-gradient(to right, ${GOLD}, ${GOLD_MID})` }}
         >
-          Send Another
+          {t('successAnother')}
         </button>
       </div>
     );
@@ -108,7 +109,7 @@ export function GrowthInquiryForm() {
       {/* Name row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="growth-firstName" className={labelCls}>First Name</label>
+          <label htmlFor="growth-firstName" className={labelCls}>{t('formFirstName')}</label>
           <input
             id="growth-firstName"
             name="firstName"
@@ -121,7 +122,7 @@ export function GrowthInquiryForm() {
           />
         </div>
         <div>
-          <label htmlFor="growth-lastName" className={labelCls}>Last Name</label>
+          <label htmlFor="growth-lastName" className={labelCls}>{t('formLastName')}</label>
           <input
             id="growth-lastName"
             name="lastName"
@@ -137,7 +138,7 @@ export function GrowthInquiryForm() {
 
       {/* Business */}
       <div>
-        <label htmlFor="growth-businessName" className={labelCls}>Business Name</label>
+        <label htmlFor="growth-businessName" className={labelCls}>{t('formBusinessName')}</label>
         <input
           id="growth-businessName"
           name="businessName"
@@ -152,7 +153,7 @@ export function GrowthInquiryForm() {
       {/* Email + Phone */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="growth-email" className={labelCls}>Email Address</label>
+          <label htmlFor="growth-email" className={labelCls}>{t('formEmail')}</label>
           <input
             id="growth-email"
             name="email"
@@ -165,7 +166,7 @@ export function GrowthInquiryForm() {
           />
         </div>
         <div>
-          <label htmlFor="growth-phone" className={labelCls}>Phone Number</label>
+          <label htmlFor="growth-phone" className={labelCls}>{t('formPhone')}</label>
           <input
             id="growth-phone"
             name="phone"
@@ -180,7 +181,7 @@ export function GrowthInquiryForm() {
 
       {/* Monthly ad budget */}
       <div>
-        <label htmlFor="growth-budget" className={labelCls}>Monthly Ad Budget</label>
+        <label htmlFor="growth-budget" className={labelCls}>{t('formBudget')}</label>
         <select
           id="growth-budget"
           name="budget"
@@ -188,8 +189,8 @@ export function GrowthInquiryForm() {
           onChange={handleChange}
           className={inputCls}
         >
-          <option value="" disabled>Select a range</option>
-          {BUDGET_OPTIONS.map((opt) => (
+          <option value="" disabled>{t('formBudgetPlaceholder')}</option>
+          {budgetOptions.map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}
         </select>
@@ -197,12 +198,12 @@ export function GrowthInquiryForm() {
 
       {/* Goals */}
       <div>
-        <label htmlFor="growth-message" className={labelCls}>Tell us about your goals</label>
+        <label htmlFor="growth-message" className={labelCls}>{t('formMessage')}</label>
         <textarea
           id="growth-message"
           name="message"
           rows={4}
-          placeholder="What are you trying to achieve? More foot traffic, online orders, brand awareness? Any context helps..."
+          placeholder={t('formMessagePlaceholder')}
           value={form.message}
           onChange={handleChange}
           className={inputCls + ' resize-none'}
@@ -219,7 +220,7 @@ export function GrowthInquiryForm() {
             : `linear-gradient(to right, ${GOLD}, ${GOLD_MID})`,
         }}
       >
-        {submitting ? 'Sending...' : 'Request a Consultation'}
+        {submitting ? t('formSubmitting') : t('formSubmit')}
       </button>
     </form>
   );

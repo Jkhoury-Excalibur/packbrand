@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { CheckCircle2 } from 'lucide-react';
 import { submitInquiry } from '@/lib/actions/inquiries';
@@ -30,6 +31,7 @@ const labelCls =
   'block text-xs font-semibold text-pbs-gray-600 dark:text-pbs-gray-400 uppercase tracking-wide mb-1.5';
 
 export function DirectInquiryForm() {
+  const t = useTranslations('Direct');
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -51,7 +53,7 @@ export function DirectInquiryForm() {
     setSubmitting(false);
 
     if ('error' in result) {
-      setError('Please fill in all required fields.');
+      setError(t('formError'));
       return;
     }
 
@@ -66,11 +68,10 @@ export function DirectInquiryForm() {
         </div>
         <div>
           <h2 className="text-2xl font-bold text-pbs-gray-900 dark:text-white mb-2">
-            Inquiry Sent!
+            {t('successTitle')}
           </h2>
           <p className="text-pbs-gray-500 dark:text-pbs-gray-400 max-w-sm">
-            Thanks! Our team will review your inquiry and reach out within 24
-            hours to walk you through Pack Brand Direct.
+            {t('successDesc')}
           </p>
         </div>
         <Button
@@ -80,7 +81,7 @@ export function DirectInquiryForm() {
             setSubmitted(false);
           }}
         >
-          Send Another
+          {t('successAnother')}
         </Button>
       </div>
     );
@@ -97,7 +98,7 @@ export function DirectInquiryForm() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="direct-firstName" className={labelCls}>
-            First Name
+            {t('formFirstName')}
           </label>
           <input
             id="direct-firstName"
@@ -112,7 +113,7 @@ export function DirectInquiryForm() {
         </div>
         <div>
           <label htmlFor="direct-lastName" className={labelCls}>
-            Last Name
+            {t('formLastName')}
           </label>
           <input
             id="direct-lastName"
@@ -130,7 +131,7 @@ export function DirectInquiryForm() {
       {/* Business */}
       <div>
         <label htmlFor="direct-businessName" className={labelCls}>
-          Restaurant / Business Name
+          {t('formBusinessName')}
         </label>
         <input
           id="direct-businessName"
@@ -147,7 +148,7 @@ export function DirectInquiryForm() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="direct-email" className={labelCls}>
-            Email Address
+            {t('formEmail')}
           </label>
           <input
             id="direct-email"
@@ -162,7 +163,7 @@ export function DirectInquiryForm() {
         </div>
         <div>
           <label htmlFor="direct-phone" className={labelCls}>
-            Phone Number
+            {t('formPhone')}
           </label>
           <input
             id="direct-phone"
@@ -179,13 +180,13 @@ export function DirectInquiryForm() {
       {/* Message */}
       <div>
         <label htmlFor="direct-message" className={labelCls}>
-          Tell us about your restaurant
+          {t('formMessage')}
         </label>
         <textarea
           id="direct-message"
           name="message"
           rows={4}
-          placeholder="Number of locations, current ordering setup, questions about Pack Brand Direct..."
+          placeholder={t('formMessagePlaceholder')}
           value={form.message}
           onChange={handleChange}
           className={inputCls + ' resize-none'}
@@ -202,7 +203,7 @@ export function DirectInquiryForm() {
             : 'linear-gradient(to right, #4D6B35, #3D5229)',
         }}
       >
-        {submitting ? 'Sending...' : 'Request a Demo'}
+        {submitting ? t('formSubmitting') : t('formSubmit')}
       </button>
     </form>
   );

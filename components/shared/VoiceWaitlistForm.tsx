@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { CheckCircle2 } from 'lucide-react';
 import { submitInquiry } from '@/lib/actions/inquiries';
 
@@ -22,13 +23,6 @@ const EMPTY: FormState = {
   callVolume: '',
 };
 
-const CALL_VOLUME_OPTIONS = [
-  'Under 20 calls / day',
-  '20 – 50 calls / day',
-  '50 – 100 calls / day',
-  '100+ calls / day',
-];
-
 const PURPLE_MID = '#4A3463';
 const PURPLE = '#5C4278';
 
@@ -39,9 +33,17 @@ const labelCls =
   'block text-xs font-semibold text-pbs-gray-600 dark:text-pbs-gray-400 uppercase tracking-wide mb-1.5';
 
 export function VoiceWaitlistForm() {
+  const t = useTranslations('Voice');
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const callVolumeOptions = [
+    t('formCallVolume1'),
+    t('formCallVolume2'),
+    t('formCallVolume3'),
+    t('formCallVolume4'),
+  ];
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -60,7 +62,7 @@ export function VoiceWaitlistForm() {
     setSubmitting(false);
 
     if ('error' in result) {
-      setError('Please fill in all required fields.');
+      setError(t('formError'));
       return;
     }
 
@@ -78,11 +80,10 @@ export function VoiceWaitlistForm() {
         </div>
         <div>
           <h2 className="text-2xl font-bold text-pbs-gray-900 dark:text-white mb-2">
-            You're on the list!
+            {t('successTitle')}
           </h2>
           <p className="text-pbs-gray-500 dark:text-pbs-gray-400 max-w-sm">
-            We'll reach out as soon as Pack Brand Voice is ready for early
-            access. You'll be among the first to know.
+            {t('successDesc')}
           </p>
         </div>
         <button
@@ -90,7 +91,7 @@ export function VoiceWaitlistForm() {
           className="inline-flex items-center justify-center font-semibold transition-all duration-200 px-6 py-2.5 text-sm rounded-xl text-white"
           style={{ background: `linear-gradient(to right, ${PURPLE}, ${PURPLE_MID})` }}
         >
-          Submit Another
+          {t('successAnother')}
         </button>
       </div>
     );
@@ -106,7 +107,7 @@ export function VoiceWaitlistForm() {
       {/* Name row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="voice-firstName" className={labelCls}>First Name</label>
+          <label htmlFor="voice-firstName" className={labelCls}>{t('formFirstName')}</label>
           <input
             id="voice-firstName"
             name="firstName"
@@ -119,7 +120,7 @@ export function VoiceWaitlistForm() {
           />
         </div>
         <div>
-          <label htmlFor="voice-lastName" className={labelCls}>Last Name</label>
+          <label htmlFor="voice-lastName" className={labelCls}>{t('formLastName')}</label>
           <input
             id="voice-lastName"
             name="lastName"
@@ -135,7 +136,7 @@ export function VoiceWaitlistForm() {
 
       {/* Business */}
       <div>
-        <label htmlFor="voice-businessName" className={labelCls}>Restaurant / Business Name</label>
+        <label htmlFor="voice-businessName" className={labelCls}>{t('formBusinessName')}</label>
         <input
           id="voice-businessName"
           name="businessName"
@@ -150,7 +151,7 @@ export function VoiceWaitlistForm() {
       {/* Email + Phone */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="voice-email" className={labelCls}>Email Address</label>
+          <label htmlFor="voice-email" className={labelCls}>{t('formEmail')}</label>
           <input
             id="voice-email"
             name="email"
@@ -163,7 +164,7 @@ export function VoiceWaitlistForm() {
           />
         </div>
         <div>
-          <label htmlFor="voice-phone" className={labelCls}>Phone Number</label>
+          <label htmlFor="voice-phone" className={labelCls}>{t('formPhone')}</label>
           <input
             id="voice-phone"
             name="phone"
@@ -179,7 +180,7 @@ export function VoiceWaitlistForm() {
       {/* Call volume */}
       <div>
         <label htmlFor="voice-callVolume" className={labelCls}>
-          Approximate Call Volume
+          {t('formCallVolume')}
         </label>
         <select
           id="voice-callVolume"
@@ -188,8 +189,8 @@ export function VoiceWaitlistForm() {
           onChange={handleChange}
           className={inputCls}
         >
-          <option value="" disabled>How many calls does your restaurant get per day?</option>
-          {CALL_VOLUME_OPTIONS.map((opt) => (
+          <option value="" disabled>{t('formCallVolumePlaceholder')}</option>
+          {callVolumeOptions.map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}
         </select>
@@ -205,7 +206,7 @@ export function VoiceWaitlistForm() {
             : `linear-gradient(to right, ${PURPLE}, ${PURPLE_MID})`,
         }}
       >
-        {submitting ? 'Joining...' : 'Join the Waitlist'}
+        {submitting ? t('formSubmitting') : t('formSubmit')}
       </button>
     </form>
   );
