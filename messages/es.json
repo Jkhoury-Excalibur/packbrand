@@ -14,12 +14,23 @@
     "switchLanguage": "Cambiar idioma",
     "cart": "Carrito de compras",
     "cartWithItems": "Carrito de compras, {count} artículos",
-    "openMenu": "Abrir menú de navegación"
+    "openMenu": "Abrir menú de navegación",
+    "myAccount": "Mi Cuenta",
+    "soonBadge": "Próximamente",
+    "solPackagingLabel": "Pack Brand Packaging",
+    "solPackagingDesc": "Empaque personalizado con mínimos bajos",
+    "solDirectLabel": "Pack Brand Direct",
+    "solDirectDesc": "Pedidos en línea sin comisiones para restaurantes",
+    "solGrowthLabel": "Pack Brand Growth",
+    "solGrowthDesc": "Meta Ads, Instagram y marketing digital",
+    "solVoiceLabel": "Pack Brand Voice",
+    "solVoiceDesc": "Agente de voz con IA para pedidos por teléfono"
   },
   "MobileNav": {
     "closeMenu": "Cerrar menú de navegación",
     "dialogLabel": "Menú de navegación",
-    "navLabel": "Navegación móvil"
+    "navLabel": "Navegación móvil",
+    "myAccount": "Mi Cuenta"
   },
   "Footer": {
     "tagline": "Pack Brand — Empaques. Pedidos. Crecimiento. Todo en un solo lugar.",

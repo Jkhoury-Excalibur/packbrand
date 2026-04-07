@@ -34,38 +34,6 @@ type NavLink = {
   sublinks?: SubLink[];
 };
 
-const SOLUTIONS: SubLink[] = [
-  {
-    href: '/packaging',
-    label: 'Pack Brand Packaging',
-    desc: 'Custom branded packaging with low minimums',
-    icon: Package,
-    color: '#E63946',
-  },
-  {
-    href: '/direct',
-    label: 'Pack Brand Direct',
-    desc: 'Commission-free online ordering for restaurants',
-    icon: RefreshCw,
-    color: '#3D5229',
-  },
-  {
-    href: '/growth',
-    label: 'Pack Brand Growth',
-    desc: 'Meta Ads, Instagram & digital marketing',
-    icon: TrendingUp,
-    color: '#C8912A',
-  },
-  {
-    href: '/voice',
-    label: 'Pack Brand Voice',
-    desc: 'AI voice agent for phone orders',
-    icon: Mic2,
-    color: '#4A3463',
-    badge: 'Soon',
-  },
-];
-
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -77,12 +45,44 @@ export function Header() {
 
   const cartCount = mounted ? cartItems.length : 0;
 
+  const solutions: SubLink[] = [
+    {
+      href: '/packaging',
+      label: t('solPackagingLabel'),
+      desc: t('solPackagingDesc'),
+      icon: Package,
+      color: '#E63946',
+    },
+    {
+      href: '/direct',
+      label: t('solDirectLabel'),
+      desc: t('solDirectDesc'),
+      icon: RefreshCw,
+      color: '#3D5229',
+    },
+    {
+      href: '/growth',
+      label: t('solGrowthLabel'),
+      desc: t('solGrowthDesc'),
+      icon: TrendingUp,
+      color: '#C8912A',
+    },
+    {
+      href: '/voice',
+      label: t('solVoiceLabel'),
+      desc: t('solVoiceDesc'),
+      icon: Mic2,
+      color: '#4A3463',
+      badge: t('soonBadge'),
+    },
+  ];
+
   const navLinks: NavLink[] = [
     { href: '/', label: t('home') },
     {
       href: '/packaging',
       label: t('solutions'),
-      sublinks: SOLUTIONS,
+      sublinks: solutions,
     },
     { href: '/about', label: t('about') },
     { href: '/contact', label: t('contact') },
@@ -235,7 +235,7 @@ export function Header() {
               <Link
                 href="/account"
                 className="p-2 rounded-lg text-pbs-gray-700 hover:text-pbs-red hover:bg-pbs-gray-50 dark:text-pbs-gray-300 dark:hover:text-pbs-red-light dark:hover:bg-pbs-gray-800 transition-colors"
-                aria-label="My Account"
+                aria-label={t('myAccount')}
               >
                 <UserCircle className="h-5 w-5" />
               </Link>

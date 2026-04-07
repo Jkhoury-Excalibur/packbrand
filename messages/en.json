@@ -14,12 +14,23 @@
     "switchLanguage": "Switch language",
     "cart": "Shopping cart",
     "cartWithItems": "Shopping cart, {count} items",
-    "openMenu": "Open navigation menu"
+    "openMenu": "Open navigation menu",
+    "myAccount": "My Account",
+    "soonBadge": "Soon",
+    "solPackagingLabel": "Pack Brand Packaging",
+    "solPackagingDesc": "Custom branded packaging with low minimums",
+    "solDirectLabel": "Pack Brand Direct",
+    "solDirectDesc": "Commission-free online ordering for restaurants",
+    "solGrowthLabel": "Pack Brand Growth",
+    "solGrowthDesc": "Meta Ads, Instagram & digital marketing",
+    "solVoiceLabel": "Pack Brand Voice",
+    "solVoiceDesc": "AI voice agent for phone orders"
   },
   "MobileNav": {
     "closeMenu": "Close navigation menu",
     "dialogLabel": "Navigation menu",
-    "navLabel": "Mobile navigation"
+    "navLabel": "Mobile navigation",
+    "myAccount": "My Account"
   },
   "Footer": {
     "tagline": "Pack Brand — Packaging. Ordering. Growth. All in one place.",

@@ -194,7 +194,7 @@ export function MobileNav({ open, onClose, links }: MobileNavProps) {
             onClick={onClose}
           >
             <UserCircle className="h-5 w-5" />
-            My Account
+            {t('myAccount')}
           </Link>
         </div>
 
