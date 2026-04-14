@@ -32,8 +32,9 @@ export default function AdminLoginPage() {
       return;
     }
 
-    // Check admin role
-    if ((data?.user as Record<string, unknown>)?.role !== 'admin') {
+    // Allow admin and staff users into the admin panel
+    const role = (data?.user as Record<string, unknown>)?.role;
+    if (role !== 'admin' && role !== 'staff') {
       setError('Access denied. Admin credentials required.');
       await authClient.signOut();
       setLoading(false);

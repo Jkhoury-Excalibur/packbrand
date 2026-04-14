@@ -24,7 +24,8 @@ export async function requireAdmin() {
     redirect('/admin/login');
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ((session.user as any).role !== 'admin') {
+  const role = (session.user as any).role;
+  if (role !== 'admin' && role !== 'staff') {
     redirect('/admin/login');
   }
   return session;
