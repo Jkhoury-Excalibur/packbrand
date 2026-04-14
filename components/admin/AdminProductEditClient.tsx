@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Save, Check, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Save, Check, Plus, Trash2, ImagePlus, X } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/Button';
 import { createProductAction, updateProductAction } from '@/lib/actions/products';
@@ -59,10 +59,53 @@ export function AdminProductEditClient({ isNew, product, categoryId, categoryNam
   const [allowCustomText, setAllowCustomText] = useState(product?.allowCustomText ?? false);
   const [isActive, setIsActive] = useState(product?.isActive ?? true);
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
+  const [images, setImages] = useState<string[]>(product?.images ?? []);
+  const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'en' | 'es'>('en');
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    setError('');
+
+    const newUrls: string[] = [];
+    for (const file of Array.from(files)) {
+      try {
+        const res = await fetch('/api/upload-product', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, contentType: file.type, fileSize: file.size }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+        const putRes = await fetch(data.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type },
+          body: file,
+        });
+        if (!putRes.ok) throw new Error('Upload to storage failed');
+
+        newUrls.push(data.publicUrl);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Upload failed');
+        setUploading(false);
+        e.target.value = '';
+        return;
+      }
+    }
+
+    setImages((prev) => [...prev, ...newUrls]);
+    setUploading(false);
+    e.target.value = '';
+  };
+
+  const removeImage = (idx: number) => setImages(images.filter((_, i) => i !== idx));
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +132,7 @@ export function AdminProductEditClient({ isNew, product, categoryId, categoryNam
       isFeatured,
       allowLogoUpload,
       allowCustomText,
-      images: product?.images ?? [],
+      images,
       tags: [],
       specs: [],
     };
@@ -143,6 +186,62 @@ export function AdminProductEditClient({ isNew, product, categoryId, categoryNam
         <form onSubmit={handleSave} className="space-y-6">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 space-y-6">
+              {/* Images */}
+              <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-sm font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest">Images</h3>
+                  <label
+                    className={cn(
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
+                      uploading
+                        ? 'text-pbs-gray-400 cursor-not-allowed'
+                        : 'text-pbs-red hover:bg-pbs-red/10 cursor-pointer',
+                    )}
+                  >
+                    <ImagePlus className="h-3.5 w-3.5" />
+                    {uploading ? 'Uploading...' : 'Add Images'}
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg,.webp,.svg"
+                      multiple
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
+                {images.length === 0 ? (
+                  <div className="border-2 border-dashed border-pbs-gray-200 dark:border-pbs-gray-700 rounded-2xl p-8 text-center text-sm text-pbs-gray-500 dark:text-pbs-gray-400">
+                    No images yet. The first image you add will be the main display.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {images.map((url, i) => (
+                      <div
+                        key={url}
+                        className="relative group aspect-square rounded-2xl overflow-hidden border-2 border-pbs-gray-100 dark:border-pbs-gray-800 bg-pbs-gray-50 dark:bg-pbs-gray-800"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt={`Product image ${i + 1}`} className="w-full h-full object-cover" />
+                        {i === 0 && (
+                          <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-pbs-red text-white text-[10px] font-bold uppercase tracking-widest">
+                            Main
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeImage(i)}
+                          className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Remove image"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Product Details */}
               <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6">
                 <div className="flex items-center justify-between mb-5">
