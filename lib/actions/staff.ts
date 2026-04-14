@@ -1,5 +1,6 @@
 'use server';
 
+import { ObjectId } from 'mongodb';
 import {
   createStaff as dbCreateStaff,
   updateStaff as dbUpdateStaff,
@@ -56,28 +57,49 @@ export async function setStaffPasswordAction(staffId: string, password: string) 
   const accountCol = db.collection('account');
 
   const hashed = await hashPassword(password);
+  const now = new Date();
 
   // Check if a Better Auth user already exists for this email
-  const existingUser = await userCol.findOne({ email: staff.email });
+  let existingUser = await userCol.findOne({ email: staff.email });
+
+  // Repair legacy-broken records from an earlier version that stored user._id
+  // as a string. Better Auth's MongoDB adapter expects ObjectId for _id and
+  // for reference fields (account.userId), so a string-typed _id breaks
+  // session lookups even if we patch the account. Delete and recreate.
+  if (existingUser && !(existingUser._id instanceof ObjectId)) {
+    const brokenId = existingUser._id as unknown as string;
+    await userCol.deleteOne({ _id: brokenId as unknown as ObjectId });
+    await accountCol.deleteMany({ userId: brokenId });
+    existingUser = null;
+  }
 
   if (existingUser) {
-    // Update the existing account's password
-    await accountCol.updateOne(
-      { userId: existingUser._id.toString(), providerId: 'credential' },
-      {
-        $set: {
-          password: hashed,
-          updatedAt: new Date().toISOString(),
-        },
-      },
+    const userObjectId = existingUser._id;
+
+    const result = await accountCol.updateOne(
+      { userId: userObjectId, providerId: 'credential' },
+      { $set: { password: hashed, updatedAt: now } },
     );
+
+    // No credential account yet (e.g., OAuth-only user) — create one.
+    if (result.matchedCount === 0) {
+      await accountCol.insertOne({
+        _id: new ObjectId(),
+        accountId: userObjectId.toHexString(),
+        providerId: 'credential',
+        userId: userObjectId,
+        password: hashed,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
   } else {
-    // Create a new Better Auth user with role 'staff'
-    const now = new Date().toISOString();
-    const userId = staffId; // Link staff record ID to user ID
+    // Create a new Better Auth user with role 'staff', reusing the staff record's
+    // ObjectId as the user _id so the two records share an id.
+    const userObjectId = new ObjectId(staffId);
 
     await userCol.insertOne({
-      _id: userId as unknown as import('mongodb').ObjectId,
+      _id: userObjectId,
       name: staff.name,
       email: staff.email,
       emailVerified: true,
@@ -88,10 +110,10 @@ export async function setStaffPasswordAction(staffId: string, password: string) 
     });
 
     await accountCol.insertOne({
-      _id: new (await import('mongodb')).ObjectId(),
-      accountId: userId,
+      _id: new ObjectId(),
+      accountId: staffId,
       providerId: 'credential',
-      userId,
+      userId: userObjectId,
       password: hashed,
       createdAt: now,
       updatedAt: now,
