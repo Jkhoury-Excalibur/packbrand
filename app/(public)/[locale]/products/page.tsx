@@ -36,6 +36,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
     name: locale === 'es' && p.nameEs ? p.nameEs : p.name,
     shortDescription: locale === 'es' && p.shortDescEs ? p.shortDescEs : p.shortDescription,
     tags: p.tags,
+    images: p.images ?? [],
   }));
 
   const filtered = (!categorySlug || categorySlug === 'all' || !activeCategoryId)
@@ -62,6 +63,7 @@ type ProductForGrid = {
   name: string;
   shortDescription: string;
   tags: string[];
+  images: string[];
 };
 
 type FilterPill = { key: string; slug: string; label: string };
@@ -141,8 +143,17 @@ function ProductsContent({ products, filterPills, activeSlug, categories }: {
               >
                 <Link href={`/products/${pid}` as any} className="absolute inset-0 z-0" aria-label={product.name} />
 
-                <div className="h-44 bg-pbs-gray-100 dark:bg-pbs-gray-800 flex items-center justify-center">
-                  <Icon className="h-16 w-16 text-pbs-gray-300 dark:text-pbs-gray-600 group-hover:text-pbs-red/40 transition-colors duration-300" strokeWidth={1} />
+                <div className="h-44 bg-pbs-gray-100 dark:bg-pbs-gray-800 flex items-center justify-center overflow-hidden">
+                  {product.images[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <Icon className="h-16 w-16 text-pbs-gray-300 dark:text-pbs-gray-600 group-hover:text-pbs-red/40 transition-colors duration-300" strokeWidth={1} />
+                  )}
                 </div>
 
                 <div className="p-6 flex flex-col flex-1">

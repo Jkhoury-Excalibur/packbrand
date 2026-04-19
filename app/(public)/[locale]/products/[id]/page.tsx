@@ -9,6 +9,7 @@ import { getApprovedReviewsByProduct } from '@/lib/db/reviews';
 import { getProductIcon } from '@/lib/utils/icons';
 import { ProductOptions } from '@/components/shared/ProductOptions';
 import { ProductReviews } from '@/components/shared/ProductReviews';
+import { ProductImageGallery } from '@/components/shared/ProductImageGallery';
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
@@ -123,33 +124,11 @@ function ProductDetailContent({ product, pid, Icon, related, categoryName, categ
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-start">
 
         {/* Left — image area */}
-        <div className="space-y-3">
-          <div className="bg-pbs-gray-100 dark:bg-pbs-gray-800/60 rounded-3xl aspect-square flex items-center justify-center border border-pbs-gray-200 dark:border-pbs-gray-700">
-            {product.images && product.images.length > 0 ? (
-              <img src={product.images[0]} alt={localizedName} className="object-cover w-full h-full rounded-3xl" />
-            ) : (
-              <Icon className="h-36 w-36 text-pbs-gray-300 dark:text-pbs-gray-600" strokeWidth={0.75} />
-            )}
-          </div>
-          <div className="grid grid-cols-4 gap-3">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className={`bg-pbs-gray-100 dark:bg-pbs-gray-800/60 rounded-2xl aspect-square flex items-center justify-center border-2 transition-colors ${
-                  i === 0
-                    ? 'border-pbs-red'
-                    : 'border-transparent hover:border-pbs-gray-300 dark:hover:border-pbs-gray-600 cursor-pointer'
-                }`}
-              >
-                {product.images && product.images[i] ? (
-                  <img src={product.images[i]} alt="" className="object-cover w-full h-full rounded-2xl" />
-                ) : (
-                  <Icon className="h-8 w-8 text-pbs-gray-300 dark:text-pbs-gray-600" strokeWidth={1} />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        <ProductImageGallery
+          images={product.images ?? []}
+          alt={localizedName}
+          Icon={Icon}
+        />
 
         {/* Right — product details */}
         <div className="space-y-6">
@@ -240,14 +219,20 @@ function ProductDetailContent({ product, pid, Icon, related, categoryName, categ
               const rIconName = rp.iconName || categoryIconName;
               const RIcon = getProductIcon(rIconName);
               const rpid = rp._id.toString();
+              const rpImg = rp.images?.[0];
               return (
                 <Link
                   key={rpid}
                   href={`/products/${rpid}` as any}
                   className="group bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <div className="h-36 bg-pbs-gray-100 dark:bg-pbs-gray-800 flex items-center justify-center">
-                    <RIcon className="h-12 w-12 text-pbs-gray-300 dark:text-pbs-gray-600" strokeWidth={1} />
+                  <div className="h-36 bg-pbs-gray-100 dark:bg-pbs-gray-800 flex items-center justify-center overflow-hidden">
+                    {rpImg ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={rpImg} alt={rp.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <RIcon className="h-12 w-12 text-pbs-gray-300 dark:text-pbs-gray-600" strokeWidth={1} />
+                    )}
                   </div>
                   <div className="p-5">
                     <h3 className="font-bold text-pbs-gray-900 dark:text-white group-hover:text-pbs-red transition-colors">
