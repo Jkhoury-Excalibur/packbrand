@@ -113,15 +113,19 @@ export function Header() {
 
               <Link
                 href="/"
-                className="flex items-center gap-2 group"
+                className="flex items-center group"
                 aria-label="Packbrand Solutions - Home"
               >
-                <Package className="h-7 w-7 text-pbs-red group-hover:scale-110 transition-transform" />
-                <span className="text-xl tracking-tight text-pbs-gray-900 dark:text-white">
-                  <span className="font-bold text-pbs-red">PACK</span>{' '}
-                  <span className="font-bold">BRAND</span>{' '}
-                  <span className="font-bold text-pbs-red">SOLUTIONS</span>
-                </span>
+                <img
+                  src="/logos/logo%20horizontal_png.png"
+                  alt="Packbrand Solutions"
+                  className="h-9 w-auto group-hover:scale-105 transition-transform dark:hidden"
+                />
+                <img
+                  src="/logos/logo%20horizontal_blanco_png.png"
+                  alt="Packbrand Solutions"
+                  className="h-9 w-auto group-hover:scale-105 transition-transform hidden dark:block"
+                />
               </Link>
             </div>
 
