@@ -1,16 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { getProductIcon } from '@/lib/utils/icons';
 
 type Props = {
   images: string[];
   alt: string;
-  Icon: LucideIcon;
+  iconName: string;
 };
 
-export function ProductImageGallery({ images, alt, Icon }: Props) {
+export function ProductImageGallery({ images, alt, iconName }: Props) {
+  const Icon = getProductIcon(iconName);
   const [active, setActive] = useState(0);
   const hasImages = images.length > 0;
   const activeImage = hasImages ? images[active] : null;

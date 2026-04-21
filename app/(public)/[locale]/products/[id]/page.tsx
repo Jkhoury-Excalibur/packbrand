@@ -49,9 +49,6 @@ export default async function ProductDetailPage({ params }: Props) {
     text: r.text,
     helpful: r.helpful,
   }));
-  const iconName = product.iconName || categoryIconName;
-  const Icon = getProductIcon(iconName);
-
   // Resolve locale-aware product fields
   const localizedName = locale === 'es' && product.nameEs ? product.nameEs : product.name;
   const localizedShortDesc = locale === 'es' && product.shortDescEs ? product.shortDescEs : product.shortDescription;
@@ -68,7 +65,6 @@ export default async function ProductDetailPage({ params }: Props) {
     <ProductDetailContent
       product={product}
       pid={pid}
-      Icon={Icon}
       related={localizedRelated}
       categoryName={categoryName}
       categorySlug={categorySlug}
@@ -82,10 +78,9 @@ export default async function ProductDetailPage({ params }: Props) {
   );
 }
 
-function ProductDetailContent({ product, pid, Icon, related, categoryName, categorySlug, categoryId, categoryIconName, localizedName, localizedShortDesc, localizedDesc, reviews }: {
+function ProductDetailContent({ product, pid, related, categoryName, categorySlug, categoryId, categoryIconName, localizedName, localizedShortDesc, localizedDesc, reviews }: {
   product: any;
   pid: string;
-  Icon: any;
   related: any[];
   categoryName: string;
   categorySlug: string;
@@ -127,7 +122,7 @@ function ProductDetailContent({ product, pid, Icon, related, categoryName, categ
         <ProductImageGallery
           images={product.images ?? []}
           alt={localizedName}
-          Icon={Icon}
+          iconName={product.iconName || categoryIconName}
         />
 
         {/* Right — product details */}
