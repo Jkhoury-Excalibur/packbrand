@@ -1,6 +1,6 @@
 import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
-import { Phone, Mail, MapPin, Clock, MessageCircle, Globe } from 'lucide-react';
+import { Phone, Mail, Clock, MessageCircle, Globe } from 'lucide-react';
 import { ContactForm } from '@/components/shared/ContactForm';
 
 type Props = {
@@ -36,13 +36,6 @@ function ContactContent() {
       label: t('emailLabel'),
       value: t('emailValue'),
       href: 'mailto:info@packbrandsolutions.com',
-      external: false,
-    },
-    {
-      icon: MapPin,
-      label: t('addressLabel'),
-      value: t('addressValue'),
-      href: null,
       external: false,
     },
     {

@@ -126,7 +126,7 @@ function HomeContent() {
             </div>
 
             <ul className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-              {(['newHeroCheck1', 'newHeroCheck2', 'newHeroCheck3', 'newHeroCheck4'] as const).map((key) => (
+              {(['newHeroCheck3', 'newHeroCheck4'] as const).map((key) => (
                 <li key={key} className="flex items-center gap-2 text-sm text-pbs-gray-700 dark:text-pbs-gray-300">
                   <Check className="h-4 w-4 text-pbs-red shrink-0" />
                   {t(key)}
