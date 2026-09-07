@@ -7,7 +7,7 @@ try {
     orders(first: 1, sortKey: CREATED_AT, reverse: true) { nodes { id email } }
   }`);
   const scopes = result.currentAppInstallation.accessScopes.map(scope => scope.handle);
-  for (const scope of ['read_orders', 'read_all_orders']) {
+  for (const scope of ['read_orders', 'read_all_orders', 'read_products']) {
     if (!scopes.includes(scope)) throw new Error(`Missing ${scope}`);
   }
   console.log('Order-reading permissions verified:', scopes.join(', '));

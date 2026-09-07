@@ -1,0 +1,11 @@
+{% comment %}
+  Applied September 7, 2026 inside layout/theme.liquid's head in Shopify theme 146037014782.
+  Redirects the Shopify homepage to the existing Vercel storefront.
+  Shopify checkout and non-homepage routes are unaffected; theme editor previews are excluded.
+{% endcomment %}
+{% if request.page_type == 'index' %}
+  {% unless request.design_mode %}
+    <script>window.location.replace('https://www.packbrandsolutions.com/');</script>
+    <meta http-equiv="refresh" content="0;url=https://www.packbrandsolutions.com/">
+  {% endunless %}
+{% endif %}
