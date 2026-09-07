@@ -16,7 +16,10 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nUpdate Claude settings with additional permissions\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git push:*)",
       "WebFetch(domain:unsplash.com)",
-      "WebFetch(domain:www.pexels.com)"
+      "WebFetch(domain:www.pexels.com)",
+      "Bash(node scripts/inspect-user.mjs packbrandsolutions@gmail.com)",
+      "Bash(node scripts/set-user-role.mjs packbrandsolutions@gmail.com admin)",
+      "Bash(git pull *)"
     ]
   }
 }
