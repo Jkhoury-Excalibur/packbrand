@@ -1,6 +1,8 @@
 import { shopifyAdmin } from '../lib/shopify/admin.ts';
 
-const uri = 'https://www.packbrandsolutions.com/api/shopify/webhooks/orders-paid';
+// Shopify disallows callback hosts registered as its store domains. This existing
+// Vercel production alias serves the same app without changing customer-facing URLs.
+const uri = 'https://packbrand.vercel.app/api/shopify/webhooks/orders-paid';
 const existing = await shopifyAdmin(`query PaidWebhooks {
   webhookSubscriptions(first: 100, topics: [ORDERS_PAID]) { nodes { id uri } pageInfo { hasNextPage } }
 }`);
