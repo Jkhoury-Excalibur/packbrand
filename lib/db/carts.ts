@@ -31,13 +31,22 @@ export type DbCart = {
   total?: number;
   status: 'active' | 'submitted' | 'completed';
   orderNumber?: string;
+  paidItemRevisions?: string[];
   createdAt: Date;
   updatedAt: Date;
 };
 
-async function col() {
+let indexReady: Promise<string> | undefined;
+
+export async function cartCollection() {
   const db = await getDb();
-  return db.collection<DbCart>('carts');
+  const collection = db.collection<DbCart>('carts');
+  indexReady ??= collection.createIndex({ cartId: 1 }, { unique: true }).catch(error => {
+    indexReady = undefined;
+    throw error;
+  });
+  await indexReady;
+  return collection;
 }
 
 /** Upsert cart items (called on every cart change from client). */
@@ -46,32 +55,31 @@ export async function upsertCart(
   items: CartItem[],
   customerId?: string,
 ) {
-  const c = await col();
+  const c = await cartCollection();
   const now = new Date();
-  const update: Record<string, unknown> = {
-    items,
-    updatedAt: now,
-  };
-  if (customerId) update.customerId = customerId;
-
   await c.updateOne(
     { cartId },
-    {
-      $set: update,
-      $setOnInsert: {
-        _id: new ObjectId(),
-        cartId,
-        status: 'active',
-        createdAt: now,
-      },
-    },
+    [
+      { $set: {
+        cartId: { $literal: cartId },
+        ...(customerId ? { customerId: { $literal: customerId } } : {}),
+        createdAt: { $ifNull: ['$createdAt', now] },
+        updatedAt: now,
+        // A delayed browser sync must never put paid items back into the cart.
+        items: { $filter: {
+          input: { $literal: items }, as: 'item',
+          cond: { $not: [{ $in: ['$$item.revision', { $ifNull: ['$paidItemRevisions', []] }] }] },
+        } },
+      } },
+      { $set: { status: { $cond: [{ $eq: [{ $size: '$items' }, 0] }, 'completed', 'active'] } } },
+    ],
     { upsert: true },
   );
 }
 
 /** Get cart by cartId. */
 export async function getCart(cartId: string) {
-  const c = await col();
+  const c = await cartCollection();
   return c.findOne({ cartId });
 }
 
@@ -90,7 +98,7 @@ export async function updateCartSubmission(
     customerId?: string;
   },
 ) {
-  const c = await col();
+  const c = await cartCollection();
   return c.updateOne(
     { cartId },
     {
@@ -105,7 +113,7 @@ export async function updateCartSubmission(
 
 /** Mark cart as completed after work order is created. */
 export async function markCartCompleted(cartId: string, orderNumber: string) {
-  const c = await col();
+  const c = await cartCollection();
   return c.updateOne(
     { cartId },
     { $set: { status: 'completed' as const, orderNumber, updatedAt: new Date() } },

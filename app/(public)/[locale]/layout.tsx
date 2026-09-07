@@ -9,6 +9,7 @@ import { Footer } from '@/components/layout/Footer';
 import { WhatsAppButton } from '@/components/shared/WhatsAppButton';
 import { ThemeInitializer } from '@/components/shared/ThemeInitializer';
 import { MetricoolTracker } from '@/components/shared/MetricoolTracker';
+import { CartPaymentSync } from '@/components/cart/CartPaymentSync';
 import '../../globals.css';
 
 const geistSans = Geist({
@@ -87,6 +88,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       >
         <NextIntlClientProvider messages={messages}>
           <ThemeInitializer />
+          <CartPaymentSync />
           <Header />
           <main className="min-h-screen">{children}</main>
           <Footer />

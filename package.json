@@ -9,7 +9,7 @@
     "lint": "eslint",
     "shopify:verify": "node --experimental-strip-types --conditions=react-server --env-file=.env.local scripts/verify-shopify.mjs",
     "shopify:verify-orders": "node --experimental-strip-types --conditions=react-server --env-file=.env.local scripts/verify-shopify-orders.mjs",
-    "test:shopify": "node --experimental-strip-types --conditions=react-server --test tests/shopify-client.test.mjs tests/shopify-catalog.test.mjs tests/shopify-checkout.test.mjs tests/shopify-orders.test.mjs"
+    "test:shopify": "node --experimental-strip-types --conditions=react-server --test tests/shopify-client.test.mjs tests/shopify-catalog.test.mjs tests/shopify-checkout.test.mjs tests/shopify-orders.test.mjs tests/shopify-payment.test.mjs tests/cart-payment.test.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1003.0",

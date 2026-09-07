@@ -58,7 +58,8 @@ export function CheckoutClient() {
     setError('');
     try {
       const result = await startShopifyCheckout({
-        lines: items.map(item => ({ variantId: item.variantId, quantity: item.qty })),
+        cartId: useCartStore.getState().cartId,
+        lines: items.map(item => ({ id: item.id, revision: item.revision, variantId: item.variantId, quantity: item.qty })),
         note, logoUrls: logoFiles.map(file => file.url), locale: es ? 'es' : 'en',
       });
       if ('error' in result) {
@@ -72,6 +73,7 @@ export function CheckoutClient() {
         return;
       }
       // Opening checkout is not a completed order. Keep the local cart when buyers go back.
+      useCartStore.getState().trackCheckout();
       window.location.assign(result.checkoutUrl);
     } catch {
       setError(es ? 'No se pudo conectar. Tu carrito sigue guardado. Inténtalo de nuevo.' : 'Unable to connect. Your cart is still saved. Please try again.');

@@ -6,6 +6,15 @@ const variantId = 'gid://shopify/ProductVariant/123';
 const input = { lines: [{ variantId, quantity: 1 }] };
 const variant = { id: variantId, availableForSale: true, quantityRule: { minimum: 1, maximum: null, increment: 1 } };
 
+test('checkout attaches only server-generated payment correlation while preserving artwork', async () => {
+  const { request, calls } = mock();
+  await createShopifyCheckout(request, { ...input, checkoutId: 'forged', logoUrls: ['https://artwork.example/logo.png'] }, undefined, 'server-checkout');
+  assert.deepEqual(calls[1].variables.input.attributes, [
+    { key: 'Artwork 1', value: 'https://artwork.example/logo.png' },
+    { key: '_pbs_checkout_id', value: 'server-checkout' },
+  ]);
+});
+
 test('checkout prefills only the server-supplied verified email, ignoring client buyer identity', async () => {
   const { request, calls } = mock();
   await createShopifyCheckout(request, { ...input, buyerIdentity: { email: 'forged@example.com' } }, 'verified@example.com');

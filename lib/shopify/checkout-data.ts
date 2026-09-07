@@ -23,7 +23,7 @@ type Variant = {
 };
 
 /** Only variant IDs and whole batch counts become merchandise inputs; client prices are never trusted. */
-export async function createShopifyCheckout(request: StorefrontRequest, input: unknown, verifiedEmail?: string) {
+export async function createShopifyCheckout(request: StorefrontRequest, input: unknown, verifiedEmail?: string, checkoutId?: string) {
   const parsed = checkoutSchema.safeParse(input);
   if (!parsed.success) throw new CheckoutError('INVALID_CART');
   const { lines, note, logoUrls, locale } = parsed.data;
@@ -64,7 +64,10 @@ export async function createShopifyCheckout(request: StorefrontRequest, input: u
       ...(verifiedEmail ? { buyerIdentity: { email: verifiedEmail } } : {}),
       lines: [...quantities].map(([merchandiseId, quantity]) => ({ merchandiseId, quantity })),
       note,
-      attributes: logoUrls.map((value, i) => ({ key: `Artwork ${i + 1}`, value })),
+      attributes: [
+        ...logoUrls.map((value, i) => ({ key: `Artwork ${i + 1}`, value })),
+        ...(checkoutId ? [{ key: '_pbs_checkout_id', value: checkoutId }] : []),
+      ],
     },
   });
   const { cart, userErrors, warnings } = result.cartCreate;
