@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, Truck, MapPin, Download } from 'lucide-react';
-import { StatusBadge } from '@/components/admin/StatusBadge';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { OrderTimeline } from '@/components/account/OrderTimeline';
 import { requireAuth } from '@/lib/auth-helpers';
 import { getOrderById } from '@/lib/db/orders';
@@ -17,7 +17,7 @@ export default async function OrderDetailPage({ params }: Props) {
   if (!order) notFound();
 
   // Ownership check: only the customer who placed the order can view it
-  if (order.customerId && order.customerId !== session.user.id) notFound();
+  if (!order.customerId || order.customerId !== session.user.id) notFound();
 
   const addr = order.shippingAddress;
   const status = order.status as OrderStatus;

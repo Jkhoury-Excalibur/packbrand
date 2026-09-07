@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Search, Package, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { StatusBadge } from '@/components/admin/StatusBadge';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { OrderTimeline } from '@/components/account/OrderTimeline';
 import { lookupOrder } from '@/lib/actions/tracking';
 

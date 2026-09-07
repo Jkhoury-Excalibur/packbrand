@@ -1,28 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { Link } from '@/i18n/navigation';
 import { ShoppingBag, ArrowRight, Package } from 'lucide-react';
 import { CartItemRow } from '@/components/cart/CartItemRow';
 import { Button } from '@/components/ui/Button';
 import { useCartStore } from '@/lib/store/cart';
 
-type Props = {
-  shippingRate: number;
-  freeShippingThreshold: number;
-};
+const subscribe = () => () => {};
 
-export function CartClient({ shippingRate, freeShippingThreshold }: Props) {
-  const [mounted, setMounted] = useState(false);
+export function CartClient() {
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
   const items = useCartStore((s) => s.items);
-
-  useEffect(() => { setMounted(true); }, []);
 
   if (!mounted) return null;
 
   const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
-  const shipping = subtotal >= freeShippingThreshold ? 0 : shippingRate;
-  const total = subtotal + shipping;
 
   if (items.length === 0) {
     return (
@@ -84,30 +77,24 @@ export function CartClient({ shippingRate, freeShippingThreshold }: Props) {
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-pbs-gray-600 dark:text-pbs-gray-400">
-                <span>Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
+                <span>Estimated subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
                 <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-pbs-gray-600 dark:text-pbs-gray-400">
-                <span>Shipping</span>
-                <span className={shipping === 0 ? 'text-green-600 dark:text-green-400 font-medium' : ''}>
-                  {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
-                </span>
-              </div>
-              <div className="border-t border-pbs-gray-100 dark:border-pbs-gray-800 pt-3 flex justify-between font-bold text-pbs-gray-900 dark:text-white text-base">
-                <span>Total</span>
-                <span>${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span>Shipping &amp; taxes</span>
+                <span>Calculated at checkout</span>
               </div>
             </div>
 
             <Link href="/checkout" className="block">
               <Button variant="primary" size="lg" className="w-full">
-                Continue to Work Order
+                Continue to Checkout
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
 
             <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400 text-center leading-relaxed">
-              Custom packaging — we'll confirm your order details before production begins.
+              Custom packaging — we&apos;ll confirm your order details before production begins.
             </p>
           </div>
         </div>

@@ -1,108 +1,37 @@
 'use client';
 
-import { useState } from 'react';
-import { Search } from 'lucide-react';
-import { AdminHeader } from '@/components/admin/AdminHeader';
-import { AdminTable } from '@/components/admin/AdminTable';
+import { useState, useTransition } from 'react';
+import { useRouter } from '@/i18n/navigation';
+import type { ManagedUser } from '@/lib/db/users';
+import { saveUser } from '@/lib/actions/users';
 
-type UserRow = {
-  id: string;
-  name: string;
-  email: string;
-  company: string;
-  role: string;
-  emailVerified: boolean;
-  createdAt: string;
-};
-
-type UserStats = {
-  total: number;
-  verified: number;
-  admins: number;
-  customers: number;
-};
-
-export function AdminUsersClient({ users, stats }: { users: UserRow[]; stats: UserStats }) {
-  const [search, setSearch] = useState('');
-
-  const filtered = users.filter((u) => {
-    const q = search.toLowerCase();
-    return !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.company.toLowerCase().includes(q);
-  });
-
-  const columns = [
-    {
-      key: 'name', header: 'Customer',
-      render: (u: UserRow) => (
-        <div>
-          <p className="font-semibold text-pbs-gray-900 dark:text-white">{u.name}</p>
-          <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400">{u.email}</p>
-        </div>
-      ),
-    },
-    { key: 'company', header: 'Company', render: (u: UserRow) => <span className="font-medium">{u.company || '—'}</span> },
-    {
-      key: 'role', header: 'Role',
-      render: (u: UserRow) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-          u.role === 'admin' ? 'bg-pbs-red/10 text-pbs-red dark:bg-pbs-red/20' : 'bg-pbs-gray-100 dark:bg-pbs-gray-800 text-pbs-gray-700 dark:text-pbs-gray-300'
-        }`}>
-          {u.role === 'admin' ? 'Admin' : 'Customer'}
-        </span>
-      ),
-    },
-    {
-      key: 'verified', header: 'Verified',
-      render: (u: UserRow) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-          u.emailVerified ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-pbs-gray-100 text-pbs-gray-500 dark:bg-pbs-gray-800'
-        }`}>
-          {u.emailVerified ? 'Verified' : 'Pending'}
-        </span>
-      ),
-    },
-    { key: 'createdAt', header: 'Joined', render: (u: UserRow) => <span className="text-pbs-gray-500 dark:text-pbs-gray-400">{u.createdAt}</span> },
-  ];
-
-  return (
-    <>
-      <AdminHeader title="Customers" subtitle={`${filtered.length} customer${filtered.length !== 1 ? 's' : ''}`} />
-
-      <main className="flex-1 p-6 space-y-5 overflow-auto">
-
-        {/* Summary cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: 'Total Users', value: stats.total },
-            { label: 'Verified', value: stats.verified },
-            { label: 'Customers', value: stats.customers },
-            { label: 'Admins', value: stats.admins },
-          ].map(({ label, value }) => (
-            <div key={label} className="bg-white dark:bg-pbs-gray-900 rounded-2xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-4">
-              <p className="text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest">{label}</p>
-              <p className="text-2xl font-black text-pbs-gray-900 dark:text-white mt-1">{value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Search */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-pbs-gray-400" />
-          <input
-            type="search"
-            placeholder="Search customers…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-900 text-sm text-pbs-gray-900 dark:text-white focus:outline-none focus:border-pbs-red transition-colors"
-          />
-        </div>
-
-        {/* Table */}
-        <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800">
-          <AdminTable columns={columns as never[]} rows={filtered as never[]} emptyMessage="No customers found." />
-        </div>
-
-      </main>
-    </>
-  );
+export function AdminUsersClient({ users, currentUserId }: { users: ManagedUser[]; currentUserId: string }) {
+  const [editing, setEditing] = useState<ManagedUser | null>(null);
+  const [message, setMessage] = useState('');
+  const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  return <div className="space-y-4">
+    {message && <p role="status" className="p-3 rounded-xl border">{message}</p>}
+    <div className="overflow-x-auto border border-pbs-gray-200 dark:border-pbs-gray-800 rounded-2xl">
+      <table className="w-full text-left text-sm"><thead className="bg-pbs-gray-100 dark:bg-pbs-gray-900"><tr>{['Name', 'Email', 'Company', 'Role', 'Verified', ''].map((label, i) => <th key={i} className="p-4">{label}</th>)}</tr></thead>
+        <tbody>{users.map(user => <tr key={user.id} className="border-t border-pbs-gray-200 dark:border-pbs-gray-800"><td className="p-4">{user.name}</td><td className="p-4">{user.email}</td><td className="p-4">{user.company || '—'}</td><td className="p-4">{user.role}</td><td className="p-4">{user.emailVerified ? 'Yes' : 'No'}</td><td className="p-4"><button className="text-pbs-red font-semibold" onClick={() => { setEditing(user); setMessage(''); }}>Edit<span className="sr-only"> {user.name}</span></button></td></tr>)}</tbody>
+      </table>{users.length === 0 && <p className="p-8 text-center">No users found.</p>}
+    </div>
+    {editing && <form className="border rounded-2xl p-6 space-y-4" onSubmit={event => {
+      event.preventDefault();
+      startTransition(async () => {
+        try {
+          const result = await saveUser(editing);
+          if (result.error) { setMessage(result.error); return; }
+          setEditing(null); setMessage('User updated.'); router.refresh();
+        } catch { setMessage('Unable to update this user. Please try again.'); }
+      });
+    }}>
+      <h2 className="text-lg font-bold">Edit {editing.email}</h2>
+      {(['name', 'company', 'phone'] as const).map(field => <label key={field} className="block capitalize">{field}<input required={field === 'name'} maxLength={field === 'phone' ? 50 : 200} value={editing[field]} onChange={event => setEditing({ ...editing, [field]: event.target.value })} className="block border rounded-lg p-2 mt-1 w-full bg-transparent" /></label>)}
+      <label className="block">Role<select className="block border rounded-lg p-2 mt-1 bg-white dark:bg-pbs-gray-900" value={editing.role} disabled={editing.id === currentUserId} onChange={event => setEditing({ ...editing, role: event.target.value })}><option value="customer">Customer</option><option value="admin">Admin</option></select></label>
+      <p className="text-sm text-pbs-gray-500">Admins can manage all website users.</p>
+      <div className="flex gap-3"><button disabled={pending} className="bg-pbs-red text-white px-5 py-2 rounded-lg disabled:opacity-50">{pending ? 'Saving…' : 'Save changes'}</button><button type="button" disabled={pending} onClick={() => setEditing(null)}>Cancel</button></div>
+    </form>}
+  </div>;
 }

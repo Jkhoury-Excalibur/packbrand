@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getAuth } from './auth';
+import { findUser } from './db/users';
 
 export async function getSession() {
   const auth = await getAuth();
@@ -19,14 +20,9 @@ export async function requireAuth() {
 }
 
 export async function requireAdmin() {
-  const session = await getSession();
-  if (!session) {
-    redirect('/admin/login');
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const role = (session.user as any).role;
-  if (role !== 'admin' && role !== 'staff') {
-    redirect('/admin/login');
-  }
+  const session = await requireAuth();
+  // Read the current database role rather than trusting an older session snapshot.
+  const user = await findUser(session.user.id);
+  if (user?.role !== 'admin' || user.emailVerified !== true) redirect('/account');
   return session;
 }

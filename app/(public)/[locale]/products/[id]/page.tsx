@@ -3,11 +3,11 @@ import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Check, ChevronRight } from 'lucide-react';
-import { getActiveProductById, getActiveProducts } from '@/lib/db/products';
-import { getCategoryById } from '@/lib/db/categories';
+import { getShopifyProduct, getShopifyProductPage, getShopifyVariants } from '@/lib/shopify/catalog';
+import type { CatalogVariant } from '@/lib/shopify/catalog-data';
 import { getApprovedReviewsByProduct } from '@/lib/db/reviews';
 import { getProductIcon } from '@/lib/utils/icons';
-import { ProductOptions } from '@/components/shared/ProductOptions';
+import { ShopifyProductOptions } from '@/components/shared/ShopifyProductOptions';
 import { ProductReviews } from '@/components/shared/ProductReviews';
 import { ProductImageGallery } from '@/components/shared/ProductImageGallery';
 
@@ -19,26 +19,35 @@ export default async function ProductDetailPage({ params }: Props) {
   const { locale, id } = await params;
   setRequestLocale(locale);
 
-  const product = await getActiveProductById(id);
-  if (!product) notFound();
-
-  // Fetch category for breadcrumb and related products
-  const category = await getCategoryById(product.categoryId);
-  const categoryName = category
-    ? (locale === 'es' && category.nameEs ? category.nameEs : category.name)
-    : '';
-  const categorySlug = category?.slug ?? '';
-  const categoryIconName = category?.iconName ?? 'Package';
-
-  const pid = product._id.toString();
-
-  const [allProducts, dbReviews] = await Promise.all([
-    getActiveProducts(),
+  const [source, variants] = await Promise.all([
+    getShopifyProduct(locale, id),
+    getShopifyVariants(locale, id),
+  ]);
+  if (!source) notFound();
+  const category = source.collections.nodes.find(c => c.handle !== 'frontpage') ?? source.collections.nodes[0];
+  const categoryName = category?.title ?? '';
+  const categorySlug = category?.handle ?? '';
+  const pid = source.id;
+  const [relatedPage, dbReviews] = await Promise.all([
+    getShopifyProductPage(locale, category?.handle ?? null, null),
     getApprovedReviewsByProduct(pid),
   ]);
-  const related = allProducts
-    .filter((p) => p.categoryId === product.categoryId && p._id.toString() !== product._id.toString())
-    .slice(0, 3);
+  const product: ProductView = {
+    name: source.title,
+    description: source.description,
+    images: source.images.nodes.map(image => image.url),
+    tags: source.tags,
+    specs: [
+      ...(source.productType ? [{ label: locale === 'es' ? 'Tipo' : 'Type', value: source.productType }] : []),
+      ...source.options.filter(option => option.name !== 'Title').map(option => ({ label: option.name, value: option.optionValues.map(value => value.name).join(', ') })),
+    ],
+  };
+  const related = (relatedPage?.nodes ?? []).filter(p => p.id !== pid).slice(0, 3).map(p => ({
+    id: p.handle,
+    name: p.title,
+    shortDescription: p.description,
+    image: p.featuredImage?.url,
+  }));
 
   const reviews = dbReviews.map((r) => ({
     id: r._id.toString(),
@@ -49,46 +58,31 @@ export default async function ProductDetailPage({ params }: Props) {
     text: r.text,
     helpful: r.helpful,
   }));
-  // Resolve locale-aware product fields
-  const localizedName = locale === 'es' && product.nameEs ? product.nameEs : product.name;
-  const localizedShortDesc = locale === 'es' && product.shortDescEs ? product.shortDescEs : product.shortDescription;
-  const localizedDesc = locale === 'es' && product.descEs ? product.descEs : product.description;
-
-  // Localize related products
-  const localizedRelated = related.map((rp: any) => ({
-    ...rp,
-    name: locale === 'es' && rp.nameEs ? rp.nameEs : rp.name,
-    shortDescription: locale === 'es' && rp.shortDescEs ? rp.shortDescEs : rp.shortDescription,
-  }));
-
   return (
     <ProductDetailContent
       product={product}
       pid={pid}
-      related={localizedRelated}
+      related={related}
       categoryName={categoryName}
       categorySlug={categorySlug}
-      categoryId={product.categoryId}
-      categoryIconName={categoryIconName}
-      localizedName={localizedName}
-      localizedShortDesc={localizedShortDesc}
-      localizedDesc={localizedDesc}
+      categoryId={category?.id ?? ''}
+      variants={variants}
       reviews={reviews}
     />
   );
 }
 
-function ProductDetailContent({ product, pid, related, categoryName, categorySlug, categoryId, categoryIconName, localizedName, localizedShortDesc, localizedDesc, reviews }: {
-  product: any;
+type ProductView = { name: string; description: string; images: string[]; tags: string[]; specs: { label: string; value: string }[] };
+type RelatedProduct = { id: string; name: string; shortDescription: string; image?: string };
+
+function ProductDetailContent({ product, pid, related, categoryName, categorySlug, categoryId, variants, reviews }: {
+  product: ProductView;
   pid: string;
-  related: any[];
+  related: RelatedProduct[];
   categoryName: string;
   categorySlug: string;
   categoryId: string;
-  categoryIconName: string;
-  localizedName: string;
-  localizedShortDesc: string;
-  localizedDesc: string;
+  variants: CatalogVariant[];
   reviews: { id: string; author: string; company: string; rating: number; date: string; text: string; helpful: number }[];
 }) {
   const t = useTranslations('ProductDetail');
@@ -106,13 +100,13 @@ function ProductDetailContent({ product, pid, related, categoryName, categorySlu
         {categoryName && (
           <>
             <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-            <Link href={`/products?category=${categorySlug}` as any} className="hover:text-pbs-red transition-colors">
+            <Link href={{ pathname: '/products', query: { category: categorySlug } }} className="hover:text-pbs-red transition-colors">
               {categoryName}
             </Link>
           </>
         )}
         <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-        <span className="text-pbs-gray-900 dark:text-white font-medium truncate">{localizedName}</span>
+        <span className="text-pbs-gray-900 dark:text-white font-medium truncate">{product.name}</span>
       </nav>
 
       {/* ── MAIN PRODUCT SECTION ── */}
@@ -121,8 +115,8 @@ function ProductDetailContent({ product, pid, related, categoryName, categorySlu
         {/* Left — image area */}
         <ProductImageGallery
           images={product.images ?? []}
-          alt={localizedName}
-          iconName={product.iconName || categoryIconName}
+          alt={product.name}
+          iconName="Package"
         />
 
         {/* Right — product details */}
@@ -132,21 +126,21 @@ function ProductDetailContent({ product, pid, related, categoryName, categorySlu
               {product.tags[0]}
             </span>
             <h1 className="text-3xl sm:text-4xl font-bold text-pbs-gray-900 dark:text-white tracking-tight mt-2 leading-tight">
-              {localizedName}
+              {product.name}
             </h1>
             <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mt-3 leading-relaxed">
-              {localizedShortDesc}
+              {product.description.length > 180 ? `${product.description.slice(0, 180)}…` : product.description}
             </p>
           </div>
 
           <hr className="border-pbs-gray-100 dark:border-pbs-gray-800" />
 
-          <div>
+          {product.tags.length > 0 && <div>
             <p className="text-xs font-bold text-pbs-gray-500 dark:text-pbs-gray-400 uppercase tracking-widest mb-4">
               {t('featuresTitle')}
             </p>
             <ul className="space-y-3">
-              {product.features.map((feature: string) => (
+              {product.tags.map((feature) => (
                 <li key={feature} className="flex items-start gap-3 text-sm text-pbs-gray-700 dark:text-pbs-gray-300">
                   <span className="shrink-0 h-5 w-5 rounded-full bg-pbs-red/10 dark:bg-pbs-red/20 flex items-center justify-center mt-0.5">
                     <Check className="h-3 w-3 text-pbs-red" strokeWidth={2.5} />
@@ -155,18 +149,17 @@ function ProductDetailContent({ product, pid, related, categoryName, categorySlu
                 </li>
               ))}
             </ul>
-          </div>
+          </div>}
 
           <hr className="border-pbs-gray-100 dark:border-pbs-gray-800" />
 
-          <ProductOptions
-            id={pid}
-            name={localizedName}
+          <ShopifyProductOptions
+            key={pid}
+            productId={pid}
+            name={product.name}
             categoryId={categoryId}
             categoryName={categoryName}
-            sizes={product.sizes}
-            basePrice={product.basePrice}
-            pricingTiers={product.pricingTiers}
+            variants={variants}
           />
         </div>
       </div>
@@ -178,7 +171,7 @@ function ProductDetailContent({ product, pid, related, categoryName, categorySlu
             {t('descriptionTitle')}
           </h2>
           <p className="text-pbs-gray-600 dark:text-pbs-gray-400 leading-relaxed">
-            {localizedDesc}
+            {product.description}
           </p>
         </div>
 
@@ -211,14 +204,13 @@ function ProductDetailContent({ product, pid, related, categoryName, categorySlu
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {related.map((rp) => {
-              const rIconName = rp.iconName || categoryIconName;
-              const RIcon = getProductIcon(rIconName);
-              const rpid = rp._id.toString();
-              const rpImg = rp.images?.[0];
+              const RIcon = getProductIcon('Package');
+              const rpid = rp.id;
+              const rpImg = rp.image;
               return (
                 <Link
                   key={rpid}
-                  href={`/products/${rpid}` as any}
+                  href={`/products/${rpid}`}
                   className="group bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   <div className="h-36 bg-pbs-gray-100 dark:bg-pbs-gray-800 flex items-center justify-center overflow-hidden">

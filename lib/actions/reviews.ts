@@ -1,7 +1,6 @@
 'use server';
 
-import { createReview, updateReviewStatus, incrementHelpful, type ReviewStatus } from '../db/reviews';
-import { requireAdmin } from '../auth-helpers';
+import { createReview, incrementHelpful } from '../db/reviews';
 
 export async function submitReviewAction(data: {
   productId: string;
@@ -15,12 +14,6 @@ export async function submitReviewAction(data: {
   }
   const id = await createReview(data);
   return { success: true, id: id.toString() };
-}
-
-export async function moderateReviewAction(id: string, status: ReviewStatus) {
-  await requireAdmin();
-  await updateReviewStatus(id, status);
-  return { success: true };
 }
 
 export async function markHelpfulAction(id: string) {

@@ -17,9 +17,9 @@ export function CartItemRow({ item }: { item: CartItem }) {
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-pbs-gray-900 dark:text-white leading-tight">{item.name}</p>
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-pbs-gray-500 dark:text-pbs-gray-400">
-          {item.size && item.size !== 'Standard' && <span>Size: {item.size}</span>}
+          {item.size && item.size !== 'Standard' && <span>{item.variantId ? item.size : `Size: ${item.size}`}</span>}
           <span>Qty: {item.qtyLabel}</span>
-          <span>${item.unitPrice.toFixed(2)}/unit</span>
+          <span>${item.unitPrice.toFixed(2)}{item.variantId ? '/option' : '/unit'}</span>
         </div>
       </div>
 

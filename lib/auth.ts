@@ -52,7 +52,7 @@ function createAuth(db: import('mongodb').Db, client: import('mongodb').MongoCli
       additionalFields: {
         company: { type: 'string' as const, required: false },
         phone: { type: 'string' as const, required: false },
-        role: { type: 'string' as const, required: false, defaultValue: 'customer' },
+        role: { type: 'string' as const, required: false, defaultValue: 'customer', input: false },
       },
     },
     plugins: [nextCookies()],

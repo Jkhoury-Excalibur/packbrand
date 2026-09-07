@@ -1,33 +1,29 @@
+import 'server-only';
+import { ObjectId } from 'mongodb';
 import { getDb } from './client';
 
-export type DbUser = {
-  _id: string;
-  name: string;
-  email: string;
-  company?: string;
-  phone?: string;
-  role?: string;
-  emailVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+export type ManagedUser = {
+  id: string; name: string; email: string; company: string; phone: string;
+  role: string; emailVerified: boolean; createdAt: string;
 };
 
-async function col() {
+export async function findUser(id: string) {
+  if (!/^[a-f\d]{24}$/i.test(id)) return null;
+  return (await getDb()).collection('user').findOne({ _id: new ObjectId(id) });
+}
+
+export async function listUsers(search: string, page: number) {
   const db = await getDb();
-  return db.collection<DbUser>('user');
-}
-
-export async function getUsers() {
-  const c = await col();
-  return c.find().sort({ createdAt: -1 }).toArray();
-}
-
-export async function getUserStats() {
-  const c = await col();
-  const all = await c.find().toArray();
-  const total = all.length;
-  const verified = all.filter((u) => u.emailVerified).length;
-  const admins = all.filter((u) => u.role === 'admin').length;
-  const customers = total - admins;
-  return { total, verified, admins, customers };
+  const pattern = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const filter = search ? { $or: ['name', 'email', 'company'].map(key => ({ [key]: { $regex: pattern, $options: 'i' } })) } : {};
+  const [rows, total] = await Promise.all([
+    db.collection('user').find(filter, { projection: { name: 1, email: 1, company: 1, phone: 1, role: 1, emailVerified: 1, createdAt: 1 } })
+      .sort({ createdAt: -1, _id: -1 }).skip((page - 1) * 25).limit(25).toArray(),
+    db.collection('user').countDocuments(filter),
+  ]);
+  return { total, users: rows.map(row => ({
+    id: row._id.toString(), name: row.name || '', email: row.email || '',
+    company: row.company || '', phone: row.phone || '', role: row.role || 'customer',
+    emailVerified: row.emailVerified === true, createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : '',
+  })) as ManagedUser[] };
 }

@@ -77,6 +77,7 @@ export const shippingAddressSchema = z.object({
 
 export const orderItemSchema = z.object({
   productId: z.string(),
+  variantId: z.string().optional(),
   name: z.string().min(1),
   categoryId: z.string().min(1),
   categoryName: z.string().min(1),

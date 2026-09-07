@@ -1,59 +1,49 @@
 import { setRequestLocale } from 'next-intl/server';
+import { notFound } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/Button';
 import { ArrowRight, Package, Sparkles } from 'lucide-react';
-import { getActiveProducts } from '@/lib/db/products';
-import { getVisibleCategories } from '@/lib/db/categories';
+import { getShopifyCollections, getShopifyProductPage } from '@/lib/shopify/catalog';
 import { getProductIcon } from '@/lib/utils/icons';
 import { cn } from '@/lib/utils/cn';
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; after?: string }>;
 };
 
 export default async function ProductsPage({ params, searchParams }: Props) {
   const { locale } = await params;
-  const { category: categorySlug } = await searchParams;
+  const { category: categorySlug, after } = await searchParams;
   setRequestLocale(locale);
 
-  const [allProducts, categories] = await Promise.all([
-    getActiveProducts(),
-    getVisibleCategories(),
+  const handle = categorySlug && categorySlug !== 'all' ? categorySlug : null;
+  const [productPage, categories] = await Promise.all([
+    getShopifyProductPage(locale, handle, after ?? null),
+    getShopifyCollections(locale),
   ]);
+  if (!productPage) notFound();
 
-  // Build slug → categoryId map
-  const slugToCategoryId = new Map(categories.map((c) => [c.slug, c._id.toString()]));
-  const categoryIdToName = new Map(categories.map((c) => [c._id.toString(), locale === 'es' && c.nameEs ? c.nameEs : c.name]));
-
-  const activeCategoryId = categorySlug ? slugToCategoryId.get(categorySlug) : undefined;
-
-  const all = allProducts.map((p) => ({
-    _id: p._id.toString(),
-    categoryId: p.categoryId,
-    iconName: p.iconName ?? '',
-    name: locale === 'es' && p.nameEs ? p.nameEs : p.name,
-    shortDescription: locale === 'es' && p.shortDescEs ? p.shortDescEs : p.shortDescription,
+  const products = productPage.nodes.map((p) => ({
+    _id: p.handle,
+    categoryId: handle ?? '',
+    iconName: 'Package',
+    name: p.title,
+    shortDescription: p.description,
     tags: p.tags,
-    images: p.images ?? [],
+    images: p.featuredImage ? [p.featuredImage.url] : [],
   }));
-
-  const filtered = (!categorySlug || categorySlug === 'all' || !activeCategoryId)
-    ? all
-    : all.filter((p) => p.categoryId === activeCategoryId);
-
-  // Build filter pills from DB categories
   const filterPills = [
     { key: 'all', slug: 'all', label: locale === 'es' ? 'Todos' : 'All' },
     ...categories.map((c) => ({
-      key: c._id.toString(),
-      slug: c.slug,
-      label: locale === 'es' && c.nameEs ? c.nameEs : c.name,
+      key: c.id,
+      slug: c.handle,
+      label: c.title,
     })),
   ];
 
-  return <ProductsContent products={filtered} filterPills={filterPills} activeSlug={categorySlug ?? 'all'} categories={categories.map((c) => ({ id: c._id.toString(), iconName: c.iconName }))} />;
+  return <ProductsContent products={products} filterPills={filterPills} activeSlug={handle ?? 'all'} nextCursor={productPage.pageInfo.hasNextPage ? productPage.pageInfo.endCursor : null} hasPrevious={Boolean(after)} locale={locale} />;
 }
 
 type ProductForGrid = {
@@ -67,18 +57,15 @@ type ProductForGrid = {
 };
 
 type FilterPill = { key: string; slug: string; label: string };
-type CategoryInfo = { id: string; iconName: string };
-
-function ProductsContent({ products, filterPills, activeSlug, categories }: {
+function ProductsContent({ products, filterPills, activeSlug, nextCursor, hasPrevious, locale }: {
   products: ProductForGrid[];
   filterPills: FilterPill[];
   activeSlug: string;
-  categories: CategoryInfo[];
+  nextCursor: string | null;
+  hasPrevious: boolean;
+  locale: string;
 }) {
   const t = useTranslations('Products');
-
-  // Build a map of categoryId → iconName for fallback
-  const catIconMap = new Map(categories.map((c) => [c.id, c.iconName]));
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-5">
@@ -106,11 +93,12 @@ function ProductsContent({ products, filterPills, activeSlug, categories }: {
         <div className="flex flex-wrap gap-2">
           {filterPills.map((f) => {
             const isActive = activeSlug === f.slug;
-            const href = f.slug === 'all' ? '/products' : `/products?category=${f.slug}`;
+            const href = { pathname: '/products', query: f.slug === 'all' ? {} : { category: f.slug } };
             return (
               <Link
                 key={f.key}
-                href={href as any}
+                href={href}
+                aria-current={isActive ? 'page' : undefined}
                 className={cn(
                   'px-4 py-2 rounded-xl text-sm font-medium transition-colors',
                   isActive
@@ -133,7 +121,7 @@ function ProductsContent({ products, filterPills, activeSlug, categories }: {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {products.map((product) => {
-            const iconName = product.iconName || catIconMap.get(product.categoryId) || 'Package';
+            const iconName = product.iconName || 'Package';
             const Icon = getProductIcon(iconName);
             const pid = product._id.toString();
             return (
@@ -141,7 +129,7 @@ function ProductsContent({ products, filterPills, activeSlug, categories }: {
                 key={pid}
                 className="relative bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300 group"
               >
-                <Link href={`/products/${pid}` as any} className="absolute inset-0 z-0" aria-label={product.name} />
+                <Link href={`/products/${pid}`} className="absolute inset-0 z-0" aria-label={product.name} />
 
                 <div className="h-44 bg-pbs-gray-100 dark:bg-pbs-gray-800 flex items-center justify-center overflow-hidden">
                   {product.images[0] ? (
@@ -149,7 +137,7 @@ function ProductsContent({ products, filterPills, activeSlug, categories }: {
                     <img
                       src={product.images[0]}
                       alt={product.name}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="h-full w-full object-contain"
                     />
                   ) : (
                     <Icon className="h-16 w-16 text-pbs-gray-300 dark:text-pbs-gray-600 group-hover:text-pbs-red/40 transition-colors duration-300" strokeWidth={1} />
@@ -176,7 +164,7 @@ function ProductsContent({ products, filterPills, activeSlug, categories }: {
                   </p>
 
                   <div className="mt-6 pt-4 border-t border-pbs-gray-100 dark:border-pbs-gray-800 relative z-10">
-                    <Link href={`/products/${pid}` as any}>
+                    <Link href={`/products/${pid}`}>
                       <Button variant="primary" size="sm" className="w-full">
                         {t('viewDetails')}
                         <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
@@ -188,6 +176,13 @@ function ProductsContent({ products, filterPills, activeSlug, categories }: {
             );
           })}
         </div>
+      )}
+
+      {(hasPrevious || nextCursor) && (
+        <nav aria-label={locale === 'es' ? 'Páginas de productos' : 'Product pages'} className="flex justify-between gap-4">
+          {hasPrevious ? <Link href={{ pathname: '/products', query: activeSlug === 'all' ? {} : { category: activeSlug } }} className="text-pbs-red font-semibold">{locale === 'es' ? 'Primera página' : 'First page'}</Link> : <span />}
+          {nextCursor && <Link href={{ pathname: '/products', query: { ...(activeSlug === 'all' ? {} : { category: activeSlug }), after: nextCursor } }} className="text-pbs-red font-semibold">{locale === 'es' ? 'Siguiente página' : 'Next page'} →</Link>}
+        </nav>
       )}
 
       {/* ── BOTTOM CTA ── */}

@@ -13,7 +13,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/Button';
-import { getVisibleCategories } from '@/lib/db/categories';
+import { getShopifyCollections } from '@/lib/shopify/catalog';
 import { getProductIcon } from '@/lib/utils/icons';
 
 // Accent gradient lookup for known slugs; new categories get the default
@@ -34,15 +34,15 @@ export default async function PackagingPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const categories = await getVisibleCategories();
+  const categories = await getShopifyCollections(locale);
 
   const categoryCards = categories.map((c) => ({
-    id: c._id.toString(),
-    name: locale === 'es' && c.nameEs ? c.nameEs : c.name,
-    description: locale === 'es' && c.descriptionEs ? c.descriptionEs : (c.description ?? ''),
-    slug: c.slug,
-    iconName: c.iconName,
-    accent: SLUG_GRADIENTS[c.slug] ?? DEFAULT_GRADIENT,
+    id: c.id,
+    name: c.title,
+    description: c.description,
+    slug: c.handle,
+    iconName: 'Package',
+    accent: SLUG_GRADIENTS[c.handle] ?? DEFAULT_GRADIENT,
   }));
 
   return <PackagingContent categoryCards={categoryCards} />;
@@ -195,14 +195,14 @@ function PackagingContent({ categoryCards }: { categoryCards: CategoryCard[] }) 
         </div>
 
         {/* ================================================================ */}
-        {/*  PRODUCT CATEGORY CARDS (dynamic from DB)                        */}
+        {/*  PRODUCT CATEGORY CARDS (cached Shopify collections)             */}
         {/* ================================================================ */}
         {categoryCards.map((cat) => {
           const Icon = getProductIcon(cat.iconName);
           return (
             <Link
               key={cat.id}
-              href={`/products?category=${cat.slug}` as any}
+              href={{ pathname: '/products', query: { category: cat.slug } }}
               className="col-span-1 md:col-span-1 lg:col-span-2 group"
             >
               <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-pbs-gray-100 dark:border-pbs-gray-800 h-full flex flex-col justify-between min-h-[180px] relative overflow-hidden hover:-translate-y-1">

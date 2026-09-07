@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 export type CartItem = {
   id: string;          // `${productId}-${size}` for uniqueness
   productId: string;
+  variantId?: string;  // Shopify's sellable variant, including any pack/quantity option
   name: string;
   categoryId: string;
   categoryName: string;
