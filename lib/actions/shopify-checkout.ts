@@ -7,8 +7,10 @@ import { findUser } from '@/lib/db/users';
 import { randomUUID } from 'node:crypto';
 import { checkoutTrackingSchema } from '@/lib/shopify/payment-data';
 import { recordCheckout } from '@/lib/db/checkout-payments';
+import { verifyTurnstile } from '@/lib/turnstile';
 
-export async function startShopifyCheckout(input: unknown) {
+export async function startShopifyCheckout(input: unknown, token?: string) {
+  if (!await verifyTurnstile(token, 'checkout')) return { error: 'TURNSTILE_FAILED' };
   const snapshot = checkoutTrackingSchema.safeParse(input);
   if (!snapshot.success) return { error: 'INVALID_CART' };
   let verifiedEmail: string | undefined;

@@ -5,8 +5,10 @@ import { inquirySchema } from '../validators';
 import { sendEmail } from '../email';
 import { escapeHtml } from '../utils/escapeHtml';
 import { getSettings } from '../db/settings';
+import { verifyTurnstile, turnstileError } from '../turnstile';
 
-export async function submitInquiry(formData: unknown) {
+export async function submitInquiry(formData: unknown, token?: string) {
+  if (!await verifyTurnstile(token, 'inquiry')) return { error: turnstileError };
   const parsed = inquirySchema.safeParse(formData);
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors };

@@ -1,5 +1,7 @@
 'use client';
 
+import { TurnstileForm, TurnstileField } from '@/components/shared/TurnstileForm';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, Eye, EyeOff, Lock, Mail, User, Building2, Phone } from 'lucide-react';
@@ -14,35 +16,37 @@ export default function SignupPage() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, token: string) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    try {
 
-    const form = new FormData(e.currentTarget);
-    const firstName = form.get('firstName') as string;
-    const lastName = form.get('lastName') as string;
-    const company = form.get('company') as string;
-    const email = form.get('email') as string;
-    const phone = form.get('phone') as string;
-    const password = form.get('password') as string;
+      const form = new FormData(e.currentTarget);
+      const firstName = form.get('firstName') as string;
+      const lastName = form.get('lastName') as string;
+      const company = form.get('company') as string;
+      const email = form.get('email') as string;
+      const phone = form.get('phone') as string;
+      const password = form.get('password') as string;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: authError } = await (authClient.signUp.email as any)({
-      name: `${firstName} ${lastName}`,
-      email,
-      password,
-      company,
-      phone,
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: authError } = await (authClient.signUp.email as any)({
+        name: `${firstName} ${lastName}`,
+        email,
+        password,
+        company,
+        phone,
+      }, { headers: { 'x-captcha-response': token } });
 
-    if (authError) {
-      setError(authError.message || 'Could not create account. Please try again.');
-      setLoading(false);
-      return;
-    }
+      if (authError) {
+        setError(authError.message || 'Could not create account. Please try again.');
+        setLoading(false);
+        return;
+      }
 
-    router.push('/verify-email');
+      router.push('/verify-email');
+    } finally { setLoading(false); }
   };
 
   return (
@@ -69,7 +73,7 @@ export default function SignupPage() {
 
         {/* Card */}
         <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 shadow-sm p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <TurnstileForm actionName="signup" onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
                 {error}
@@ -210,10 +214,11 @@ export default function SignupPage() {
               </span>
             </label>
 
+            <TurnstileField />
             <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading || !agreed}>
               {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
-          </form>
+          </TurnstileForm>
 
           <p className="text-center text-sm text-pbs-gray-500 dark:text-pbs-gray-400 mt-6">
             Already have an account?{' '}

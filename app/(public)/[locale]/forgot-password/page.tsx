@@ -1,5 +1,7 @@
 'use client';
 
+import { TurnstileForm, TurnstileField } from '@/components/shared/TurnstileForm';
+
 import { useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { Package, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
@@ -11,15 +13,15 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, token: string) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const res = await fetch('/api/auth/forget-password', {
+      const res = await fetch('/api/auth/request-password-reset', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-captcha-response': token },
         body: JSON.stringify({ email, redirectTo: '/login' }),
       });
       if (!res.ok) {
@@ -32,6 +34,7 @@ export default function ForgotPasswordPage() {
       return;
     }
 
+    setLoading(false);
     setSubmitted(true);
   };
 
@@ -93,7 +96,7 @@ export default function ForgotPasswordPage() {
                 Enter your email address and we&apos;ll send you a link to reset your password.
               </p>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <TurnstileForm actionName="password_reset" onSubmit={handleSubmit} className="space-y-5">
                 {error && (
                   <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
                     {error}
@@ -118,10 +121,11 @@ export default function ForgotPasswordPage() {
                   </div>
                 </div>
 
+                <TurnstileField />
                 <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading}>
                   {loading ? 'Sending...' : 'Send Reset Link'}
                 </Button>
-              </form>
+              </TurnstileForm>
             </>
           )}
         </div>

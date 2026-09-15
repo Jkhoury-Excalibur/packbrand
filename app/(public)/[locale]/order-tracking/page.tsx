@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { OrderTimeline } from '@/components/account/OrderTimeline';
 import { lookupOrder } from '@/lib/actions/tracking';
+import { TurnstileForm, TurnstileField } from '@/components/shared/TurnstileForm';
 
 type TrackedOrder = {
   id: string;
@@ -32,20 +33,23 @@ export default function OrderTrackingPage() {
   const [result, setResult] = useState<TrackedOrder | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent, token: string) => {
     e.preventDefault();
     setSearching(true);
     setNotFound(false);
     setResult(null);
-
-    const order = await lookupOrder(query.trim().toUpperCase());
-    if (order) {
-      setResult(order as TrackedOrder);
-    } else {
-      setNotFound(true);
-    }
-    setSearching(false);
+    setError('');
+    try {
+      const order = await lookupOrder(query.trim().toUpperCase(), token);
+      if (order?.error) { setError(order.error); return; }
+      if (order) {
+        setResult(order as TrackedOrder);
+      } else {
+        setNotFound(true);
+      }
+    } finally { setSearching(false); }
   };
 
   return (
@@ -71,7 +75,7 @@ export default function OrderTrackingPage() {
 
       {/* Search form */}
       <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 sm:p-8">
-        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+        <TurnstileForm actionName="tracking" onSubmit={handleSearch} className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-pbs-gray-400" />
             <input
@@ -85,7 +89,9 @@ export default function OrderTrackingPage() {
           <Button type="submit" variant="primary" size="lg" disabled={!query.trim() || searching}>
             {searching ? 'Searching...' : 'Track Work Order'}
           </Button>
-        </form>
+          <div className="basis-full"><TurnstileField /></div>
+          {error && <p role="alert" className="text-sm text-pbs-red basis-full">{error}</p>}
+        </TurnstileForm>
         <p className="text-xs text-pbs-gray-400 mt-3">
           Your work order number was included in your confirmation email. Format: WO-XXXX
         </p>

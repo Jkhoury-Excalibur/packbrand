@@ -1,8 +1,10 @@
 'use server';
 
 import { getOrderById } from '../db/orders';
+import { verifyTurnstile, turnstileError } from '../turnstile';
 
-export async function lookupOrder(orderNumber: string) {
+export async function lookupOrder(orderNumber: string, token?: string) {
+  if (!await verifyTurnstile(token, 'tracking')) return { error: turnstileError };
   const order = await getOrderById(orderNumber);
   if (!order) return null;
 

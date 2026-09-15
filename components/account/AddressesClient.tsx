@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Plus, Pencil, Trash2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { TurnstileForm, TurnstileField } from '@/components/shared/TurnstileForm';
 import {
   createAddressAction,
   deleteAddressAction,
@@ -49,41 +50,43 @@ export function AddressesClient({ initialAddresses }: { initialAddresses: Addres
     });
   };
 
-  const handleSaveNew = async (e: React.FormEvent) => {
+  const handleSaveNew = async (e: React.FormEvent, token: string) => {
     e.preventDefault();
     setSaving(true);
     setError('');
+    try {
 
-    const form = e.target as HTMLFormElement;
-    const get = (name: string) => (form.elements.namedItem(`new-${name}`) as HTMLInputElement).value;
+      const form = e.target as HTMLFormElement;
+      const get = (name: string) => (form.elements.namedItem(`new-${name}`) as HTMLInputElement).value;
 
-    const result = await createAddressAction({
-      type: 'shipping' as const,
-      isDefault: addresses.length === 0,
-      name: get('name'),
-      company: get('company'),
-      line1: get('line1'),
-      line2: get('line2'),
-      city: get('city'),
-      state: get('state'),
-      zip: get('zip'),
-      country: 'United States',
-      phone: get('phone'),
-    });
+      const result = await createAddressAction({
+        type: 'shipping' as const,
+        isDefault: addresses.length === 0,
+        name: get('name'),
+        company: get('company'),
+        line1: get('line1'),
+        line2: get('line2'),
+        city: get('city'),
+        state: get('state'),
+        zip: get('zip'),
+        country: 'United States',
+        phone: get('phone'),
+      }, token);
 
-    setSaving(false);
+      setSaving(false);
 
-    if ('error' in result) {
-      setError('Please fill in all required fields.');
-      return;
-    }
+      if ('error' in result) {
+        setError(typeof result.error === 'string' ? result.error : 'Please fill in all required fields.');
+        return;
+      }
 
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-      setShowForm(false);
-      router.refresh();
-    }, 1200);
+      setSaved(true);
+      setTimeout(() => {
+        setSaved(false);
+        setShowForm(false);
+        router.refresh();
+      }, 1200);
+    } finally { setSaving(false); }
   };
 
   return (
@@ -170,7 +173,7 @@ export function AddressesClient({ initialAddresses }: { initialAddresses: Addres
               {error}
             </div>
           )}
-          <form onSubmit={handleSaveNew} className="space-y-4">
+          <TurnstileForm actionName="address" onSubmit={handleSaveNew} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { id: 'name',    label: 'Full Name',    span: false },
@@ -202,7 +205,8 @@ export function AddressesClient({ initialAddresses }: { initialAddresses: Addres
                 Cancel
               </Button>
             </div>
-          </form>
+            <TurnstileField />
+          </TurnstileForm>
         </div>
       )}
     </div>

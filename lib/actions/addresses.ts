@@ -9,8 +9,10 @@ import {
 } from '../db/addresses';
 import { addressSchema } from '../validators';
 import { requireAuth } from '../auth-helpers';
+import { verifyTurnstile, turnstileError } from '../turnstile';
 
-export async function createAddressAction(formData: unknown) {
+export async function createAddressAction(formData: unknown, token?: string) {
+  if (!await verifyTurnstile(token, 'address')) return { error: turnstileError };
   const session = await requireAuth();
 
   const parsed = addressSchema.safeParse(formData);

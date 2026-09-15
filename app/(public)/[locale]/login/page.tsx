@@ -1,5 +1,7 @@
 'use client';
 
+import { TurnstileForm, TurnstileField } from '@/components/shared/TurnstileForm';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, Eye, EyeOff, Lock, Mail } from 'lucide-react';
@@ -13,27 +15,29 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, token: string) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    try {
 
-    const form = new FormData(e.currentTarget);
-    const email = form.get('email') as string;
-    const password = form.get('password') as string;
+      const form = new FormData(e.currentTarget);
+      const email = form.get('email') as string;
+      const password = form.get('password') as string;
 
-    const { error: authError } = await authClient.signIn.email({
-      email,
-      password,
-    });
+      const { error: authError } = await authClient.signIn.email({
+        email,
+        password,
+      }, { headers: { 'x-captcha-response': token } });
 
-    if (authError) {
-      setError(authError.message || 'Invalid email or password.');
-      setLoading(false);
-      return;
-    }
+      if (authError) {
+        setError(authError.message || 'Invalid email or password.');
+        setLoading(false);
+        return;
+      }
 
-    router.push('/account');
+      router.push('/account');
+    } finally { setLoading(false); }
   };
 
   return (
@@ -60,7 +64,7 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="bg-white dark:bg-pbs-gray-900 rounded-3xl border border-pbs-gray-100 dark:border-pbs-gray-800 shadow-sm p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <TurnstileForm actionName="login" onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
                 {error}
@@ -116,10 +120,11 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <TurnstileField />
             <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading}>
               {loading ? 'Signing In…' : 'Sign In'}
             </Button>
-          </form>
+          </TurnstileForm>
 
           <p className="text-center text-sm text-pbs-gray-500 dark:text-pbs-gray-400 mt-6">
             Don&apos;t have an account?{' '}

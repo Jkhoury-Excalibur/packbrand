@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/Button';
 import { useCartStore } from '@/lib/store/cart';
 import { startShopifyCheckout } from '@/lib/actions/shopify-checkout';
+import { TurnstileForm, TurnstileField, type TurnstileFormHandle } from '@/components/shared/TurnstileForm';
 
 const subscribe = () => () => {};
 const inputClass = 'w-full px-4 py-3 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm';
@@ -23,6 +24,7 @@ export function CheckoutClient() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const submittingRef = useRef(false);
+  const security = useRef<TurnstileFormHandle>(null);
   const hasLegacyItems = items.some(item => !item.variantId);
   const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
   const money = (amount: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).format(amount);
@@ -34,23 +36,26 @@ export function CheckoutClient() {
     setUploading(true);
     setError('');
     try {
-      for (const file of files) {
-        const response = await fetch('/api/upload-logo', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: file.name, contentType: file.type, fileSize: file.size }),
-        });
-        if (!response.ok) throw new Error('Upload failed');
-        const data = await response.json();
+      const token = security.current?.consumeToken();
+      if (!token) throw new Error('Security verification required');
+      const response = await fetch('/api/upload-logo', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, files: files.map(file => ({ filename: file.name, contentType: file.type, fileSize: file.size })) }),
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      const { uploads } = await response.json();
+      for (const [index, file] of files.entries()) {
+        const data = uploads[index];
         const upload = await fetch(data.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
         if (!upload.ok) throw new Error('Upload failed');
         setLogoFiles(previous => [...previous, { name: file.name, url: data.publicUrl }]);
       }
     } catch {
-      setError(es ? 'No se pudo subir el archivo. Inténtalo de nuevo o envíalo por correo más tarde.' : 'The file could not be uploaded. Try again or email it later.');
-    } finally { setUploading(false); input.value = ''; }
+      setError(es ? 'Completa la verificación de seguridad e intenta subir el archivo de nuevo.' : 'Complete the security check and try uploading the file again.');
+    } finally { security.current?.reset(); setUploading(false); input.value = ''; }
   }
 
-  async function checkout(event: React.FormEvent) {
+  async function checkout(event: React.FormEvent, token: string) {
     event.preventDefault();
     if (submittingRef.current || uploading || hasLegacyItems || !items.length) return;
     submittingRef.current = true;
@@ -61,9 +66,10 @@ export function CheckoutClient() {
         cartId: useCartStore.getState().cartId,
         lines: items.map(item => ({ id: item.id, revision: item.revision, variantId: item.variantId, quantity: item.qty })),
         note, logoUrls: logoFiles.map(file => file.url), locale: es ? 'es' : 'en',
-      });
+      }, token);
       if ('error' in result) {
         const errors: Record<string, string> = {
+          TURNSTILE_FAILED: es ? 'La verificación de seguridad falló. Inténtalo de nuevo.' : 'Security verification failed. Please try again.',
           INVALID_CART: es ? 'Revisa tu carrito y vuelve a añadir los productos desde el catálogo.' : 'Review your cart and re-add the products from the catalog.',
           UNAVAILABLE: es ? 'Un producto ya no está disponible. Revisa tu carrito antes de continuar.' : 'An item is no longer available. Review your cart before continuing.',
           QUANTITY: es ? 'La cantidad no cumple los límites actuales del producto. Vuelve a seleccionarla desde el catálogo.' : 'A quantity does not meet the current product limits. Select it again from the catalog.',
@@ -93,7 +99,7 @@ export function CheckoutClient() {
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">{es ? 'Finalizar compra' : 'Checkout'}</h1>
       <p className="text-pbs-gray-500 dark:text-pbs-gray-400 mb-8">{es ? 'Añade los detalles de tu diseño y continúa al pago seguro. La dirección de envío y el pago se completan en el siguiente paso.' : 'Add your artwork details, then continue to secure checkout. Enter your shipping address and payment in the next step.'}</p>
-      <form onSubmit={checkout} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <TurnstileForm ref={security} actionName="checkout" onSubmit={checkout} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <fieldset disabled={submitting || uploading} className="lg:col-span-2 space-y-6 min-w-0">
           <div className={panelClass}>
             <label htmlFor="order-note" className="block font-semibold">{es ? 'Instrucciones de diseño (opcional)' : 'Artwork instructions (optional)'}</label>
@@ -122,12 +128,13 @@ export function CheckoutClient() {
           <p className="text-xs text-pbs-gray-500 dark:text-pbs-gray-400">{es ? 'Los precios finales, el envío, los impuestos y los descuentos se calculan en el pago.' : 'Final prices, shipping, taxes, and discounts are calculated at checkout.'}</p>
           {hasLegacyItems && <p role="alert" className="text-sm text-pbs-red">{es ? 'Tu carrito contiene productos del catálogo anterior. Elimínalos y añade sus versiones actuales antes de pagar.' : 'Your cart contains products from the previous catalog. Remove them and add their current versions before checkout.'}</p>}
           {error && <p role="alert" className="text-sm text-pbs-red">{error}</p>}
+          <TurnstileField />
           <Button type="submit" size="lg" className="w-full" disabled={submitting || uploading || hasLegacyItems}>
             {submitting ? (es ? 'Abriendo pago…' : 'Opening checkout…') : (es ? 'Continuar al pago seguro' : 'Continue to secure checkout')}<ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           <Link href="/cart" className="block text-center text-sm text-pbs-red">{es ? 'Editar carrito' : 'Edit cart'}</Link>
         </div>
-      </form>
+      </TurnstileForm>
     </div>
   );
 }

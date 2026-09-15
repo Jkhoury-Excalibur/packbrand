@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { nextCookies } from 'better-auth/next-js';
+import { captcha } from 'better-auth/plugins';
 import { getClient, getDb } from './db/client';
 import { sendEmail } from './email';
 import { escapeHtml } from './utils/escapeHtml';
@@ -55,7 +56,11 @@ function createAuth(db: import('mongodb').Db, client: import('mongodb').MongoCli
         role: { type: 'string' as const, required: false, defaultValue: 'customer', input: false },
       },
     },
-    plugins: [nextCookies()],
+    plugins: [captcha({
+      provider: 'cloudflare-turnstile',
+      secretKey: process.env.TURNSTILE_SECRET_KEY || '',
+      endpoints: ['/sign-in/email', '/sign-up/email', '/request-password-reset', '/forget-password', '/reset-password', '/send-verification-email'],
+    }), nextCookies()],
   });
 }
 

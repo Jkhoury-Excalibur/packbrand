@@ -5,6 +5,7 @@ import { ObjectId } from 'mongodb';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/auth-helpers';
 import { getClient, getDb } from '@/lib/db/client';
+import { verifyTurnstile, turnstileError } from '@/lib/turnstile';
 
 const schema = z.object({
   id: z.string().regex(/^[a-f\d]{24}$/i),
@@ -14,7 +15,8 @@ const schema = z.object({
   role: z.enum(['customer', 'admin']),
 });
 
-export async function saveUser(input: unknown) {
+export async function saveUser(input: unknown, token?: string) {
+  if (!await verifyTurnstile(token, 'user_edit')) return { error: turnstileError };
   const session = await requireAdmin();
   const parsed = schema.safeParse(input);
   if (!parsed.success) return { error: 'Check the user details and try again.' };

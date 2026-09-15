@@ -26,6 +26,12 @@ Verification on September 5, 2026: build, focused lint and 22 unit tests pass. T
 
 Public category and product content is cached on the server for five minutes. Variant prices and availability are cached for one minute. These caches are shared across visitors, separated by store, API version, and language, and refresh on demand after the interval. Failed refreshes retain the last successful cache entry. The underlying API transport remains uncached, so cart mutations and other buyer-specific requests are never shared. Publishing a product or collection to the Headless channel makes it available to these pages after cache refresh.
 
+## Form protection
+
+Website login, signup, password-reset, inquiry/waitlist, review, order-tracking, address-creation, user-edit and checkout submissions use Cloudflare Turnstile. Artwork uploads validate a fresh token once per batch of up to three files. Tokens are verified on the server before processing; failed verification keeps form input available for another attempt. Session reads, cart synchronization, Shopify webhooks and admin search navigation do not require a browser challenge.
+
+Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and the private `TURNSTILE_SECRET_KEY` in `.env.local`, and in Vercel for deployed environments. Only the site key is included in browser code. The widget's allowed hostnames are managed in Cloudflare. No development bypass or automatic test-key fallback is enabled. Run `npm run test:turnstile` to verify rejection and validation behavior. Cloudflare's official test keys can be supplied to an isolated local process for browser testing without modifying `.env.local`.
+
 ## Shopify API connection
 
 The server-only client is in `lib/shopify/client.ts`. It uses the Pack Brand Solutions Headless storefront on `akndhk-dx.myshopify.com`, with the stable `2026-07` Storefront API.

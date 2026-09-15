@@ -1,5 +1,7 @@
 'use client';
 
+import { TurnstileForm, TurnstileField } from '@/components/shared/TurnstileForm';
+
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
@@ -54,20 +56,21 @@ export function ContactForm() {
 
   const [error, setError] = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent, token: string) {
     e.preventDefault();
     setSubmitting(true);
     setError('');
+    try {
+      const result = await submitInquiry({ type: 'general' as const, ...form }, token);
+      setSubmitting(false);
 
-    const result = await submitInquiry({ type: 'general' as const, ...form });
-    setSubmitting(false);
+      if ('error' in result) {
+        setError(typeof result.error === 'string' ? result.error : 'Please fill in all required fields.');
+        return;
+      }
 
-    if ('error' in result) {
-      setError('Please fill in all required fields.');
-      return;
-    }
-
-    setSubmitted(true);
+      setSubmitted(true);
+    } finally { setSubmitting(false); }
   }
 
   if (submitted) {
@@ -95,7 +98,7 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+    <TurnstileForm actionName="inquiry" onSubmit={handleSubmit} noValidate className="space-y-5">
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
           {error}
@@ -219,6 +222,7 @@ export function ContactForm() {
         />
       </div>
 
+      <TurnstileField />
       <Button
         type="submit"
         variant="primary"
@@ -228,6 +232,6 @@ export function ContactForm() {
       >
         {submitting ? t('submitting') : t('submit')}
       </Button>
-    </form>
+    </TurnstileForm>
   );
 }

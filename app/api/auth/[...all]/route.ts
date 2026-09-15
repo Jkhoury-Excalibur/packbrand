@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   // Block staff/admin from using public password reset
   const url = new URL(request.url);
-  if (url.pathname === '/api/auth/forget-password') {
+  if (['/api/auth/forget-password', '/api/auth/request-password-reset'].includes(url.pathname)) {
     const body = await request.clone().json().catch(() => ({}));
     if (body.email) {
       const db = await getDb();

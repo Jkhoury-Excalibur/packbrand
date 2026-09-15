@@ -5,6 +5,7 @@ import { Star, ThumbsUp, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
 import { submitReviewAction, markHelpfulAction } from '@/lib/actions/reviews';
+import { TurnstileForm, TurnstileField } from '@/components/shared/TurnstileForm';
 
 type Review = {
   id: string;
@@ -53,6 +54,7 @@ export function ProductReviews({ productId, reviews }: { productId: string; revi
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [formRating, setFormRating] = useState(5);
   const [helpedIds, setHelpedIds] = useState<Set<string>>(new Set());
 
@@ -60,26 +62,30 @@ export function ProductReviews({ productId, reviews }: { productId: string; revi
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : 0;
 
-  const handleSubmitReview = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmitReview = async (e: React.FormEvent<HTMLFormElement>, token: string) => {
     e.preventDefault();
     setSubmitting(true);
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+    setError('');
+    try {
+      const form = e.currentTarget;
+      const formData = new FormData(form);
 
-    await submitReviewAction({
-      productId,
-      author: formData.get('author') as string,
-      company: (formData.get('company') as string) || '',
-      rating: formRating,
-      text: formData.get('text') as string,
-    });
+      const result = await submitReviewAction({
+        productId,
+        author: formData.get('author') as string,
+        company: (formData.get('company') as string) || '',
+        rating: formRating,
+        text: formData.get('text') as string,
+      }, token);
+      if (result.error) { setError(result.error); return; }
 
-    setSubmitting(false);
-    setSubmitted(true);
-    setShowForm(false);
-    form.reset();
-    setFormRating(5);
-    setTimeout(() => setSubmitted(false), 4000);
+      setSubmitting(false);
+      setSubmitted(true);
+      setShowForm(false);
+      form.reset();
+      setFormRating(5);
+      setTimeout(() => setSubmitted(false), 4000);
+    } finally { setSubmitting(false); }
   };
 
   const handleHelpful = async (reviewId: string) => {
@@ -120,7 +126,7 @@ export function ProductReviews({ productId, reviews }: { productId: string; revi
 
       {/* Review form */}
       {showForm && (
-        <form
+        <TurnstileForm actionName="review"
           onSubmit={handleSubmitReview}
           className="bg-pbs-gray-50 dark:bg-pbs-gray-900 rounded-2xl border border-pbs-gray-100 dark:border-pbs-gray-800 p-6 mb-6 space-y-4"
         >
@@ -167,6 +173,8 @@ export function ProductReviews({ productId, reviews }: { productId: string; revi
               className="w-full px-4 py-2.5 rounded-xl border-2 border-pbs-gray-200 dark:border-pbs-gray-700 bg-white dark:bg-pbs-gray-800 text-pbs-gray-900 dark:text-white text-sm focus:outline-none focus:border-pbs-red transition-colors resize-none"
             />
           </div>
+          {error && <p role="alert" className="text-sm text-pbs-red">{error}</p>}
+          <TurnstileField />
           <div className="flex items-center gap-3">
             <Button type="submit" variant="primary" size="sm" disabled={submitting}>
               {submitting ? 'Submitting…' : 'Submit Review'}
@@ -175,7 +183,7 @@ export function ProductReviews({ productId, reviews }: { productId: string; revi
               Cancel
             </button>
           </div>
-        </form>
+        </TurnstileForm>
       )}
 
       {submitted && (

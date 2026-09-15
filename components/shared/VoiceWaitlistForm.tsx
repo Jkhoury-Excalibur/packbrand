@@ -1,5 +1,7 @@
 'use client';
 
+import { TurnstileForm, TurnstileField } from '@/components/shared/TurnstileForm';
+
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { CheckCircle2 } from 'lucide-react';
@@ -53,20 +55,21 @@ export function VoiceWaitlistForm() {
 
   const [error, setError] = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent, token: string) {
     e.preventDefault();
     setSubmitting(true);
     setError('');
+    try {
+      const result = await submitInquiry({ type: 'voice' as const, ...form }, token);
+      setSubmitting(false);
 
-    const result = await submitInquiry({ type: 'voice' as const, ...form });
-    setSubmitting(false);
+      if ('error' in result) {
+        setError(typeof result.error === 'string' ? result.error : t('formError'));
+        return;
+      }
 
-    if ('error' in result) {
-      setError(t('formError'));
-      return;
-    }
-
-    setSubmitted(true);
+      setSubmitted(true);
+    } finally { setSubmitting(false); }
   }
 
   if (submitted) {
@@ -98,7 +101,7 @@ export function VoiceWaitlistForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+    <TurnstileForm actionName="inquiry" onSubmit={handleSubmit} noValidate className="space-y-5">
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">
           {error}
@@ -196,6 +199,7 @@ export function VoiceWaitlistForm() {
         </select>
       </div>
 
+      <TurnstileField />
       <button
         type="submit"
         disabled={submitting}
@@ -208,6 +212,6 @@ export function VoiceWaitlistForm() {
       >
         {submitting ? t('formSubmitting') : t('formSubmit')}
       </button>
-    </form>
+    </TurnstileForm>
   );
 }

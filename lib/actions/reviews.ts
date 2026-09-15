@@ -1,6 +1,7 @@
 'use server';
 
 import { createReview, incrementHelpful } from '../db/reviews';
+import { verifyTurnstile, turnstileError } from '../turnstile';
 
 export async function submitReviewAction(data: {
   productId: string;
@@ -8,7 +9,8 @@ export async function submitReviewAction(data: {
   company: string;
   rating: number;
   text: string;
-}) {
+}, token?: string) {
+  if (!await verifyTurnstile(token, 'review')) return { error: turnstileError };
   if (!data.author || !data.text || !data.productId || data.rating < 1 || data.rating > 5) {
     return { error: 'Invalid review data' };
   }
